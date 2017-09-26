@@ -1,4 +1,8 @@
 # Skipper - Container Deployment API
+
+[![CircleCI](https://circleci.com/gh/concur/skipper/tree/master.svg?style=svg&circle-token=e16cb0f808bc99fe8110761056142fb78466af34)](https://circleci.com/gh/concur/skipper/tree/master)
+
+<img src="https://user-images.githubusercontent.com/3026995/30878025-7a472d98-a2b0-11e7-804b-fcf5aa6bce3b.png" alt="skipper" width="80" height="100">
 Skipper will command your fleet of k8s clusters. 
 
 ![skipper deployment 1](https://cloud.githubusercontent.com/assets/3026995/20087845/f879c3d4-a530-11e6-8415-516a4a03ad10.png)
