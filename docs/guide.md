@@ -108,23 +108,16 @@ And lastly the endpoint where the service can be reached for each location
 ### 4c. Look at the objects created in k8s
 
 ```
-kubectl get svc,ing,dep,po mydeployment
+kubectl get svc,ing,deploy mydeployment
 
-NAME               CLUSTER-IP   EXTERNAL-IP   PORT(S)          AGE
-svc/kubernetes     10.0.0.1     <none>        443/TCP          6d
-svc/mydeployment   10.0.0.59    <pending>     80:31189/TCP     2m
-svc/skipper        10.0.0.187   <nodes>       5000:32468/TCP   4h
+NAME               CLUSTER-IP   EXTERNAL-IP   PORT(S)        AGE
+svc/mydeployment   10.0.0.72    <pending>     80:30046/TCP   4m
 
 NAME               HOSTS                                            ADDRESS          PORTS     AGE
-ing/mydeployment   mydeployment-default.eur.192.168.99.100.xip.io   192.168.99.100   80, 443   1h
+ing/mydeployment   mydeployment-default.eur.192.168.99.100.xip.io   192.168.99.100   80, 443   4m
 
 NAME                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-deploy/mydeployment   1         1         1            1           1h
-deploy/skipper        1         1         1            1           28m
-
-NAME                               READY     STATUS    RESTARTS   AGE
-po/mydeployment-1622088297-ndxk0   1/1       Running   0          2m
-po/skipper-2340175964-jr7qj        1/1       Running   0          28m
+deploy/mydeployment   1         1         1            1           4m
 ```
 
 ### 4d. Access the running service using the ingress endpoint
