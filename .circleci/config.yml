@@ -1,0 +1,34 @@
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version you desire here
+      - image: circleci/node:8.3.0
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      - run: sudo npm install -g mocha
+      - run: sudo npm install -g istanbul@1.1.0-alpha.1
+      - run: npm update
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+        
+      # run tests!
+      - run: PATH=$PATH:$(pwd)/hoverfly && hoverctl start --proxy-port 8500 && hoverctl import ./hoverfly/k8s.json && hoverctl mode simulate --matching-strategy first && istanbul cover _mocha -- -R spec
+      - store_artifacts:
+          path: ~/repo/coverage/lcov-report/
+
+

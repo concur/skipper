@@ -1,0 +1,223 @@
+"use strict";
+
+var _ = require('lodash');
+var k8sHelper = require('./k8sHelper');
+
+exports.getKind = function(type) {
+  var kind = {};
+  
+  switch (type) {
+    case 'configmaps':
+      kind = {
+        "apiVersion": "v1",
+        "kind": "ConfigMap",
+        "prefix": "api",
+        "containerSpec": false
+      };
+      break;
+    case 'deployments':
+      kind = {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Deployment",
+        "prefix": "apis",
+        "containerSpec": true
+      };
+      break;
+    case 'daemonsets':
+      kind = {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "DaemonSet",
+        "prefix": "apis",
+        "containerSpec": true
+      };
+      break;
+    case 'jobs':
+      kind = {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Job",
+        "prefix": "apis",
+        "containerSpec": true
+      };
+      break;
+    case 'secrets':
+      kind = {
+        "apiVersion": "v1",
+        "kind": "Secret",
+        "prefix": "api",
+        "containerSpec": false
+      };
+      break;
+    case 'services':
+      kind = {
+        "apiVersion": "v1",
+        "kind": "Service",
+        "prefix": "api",
+        "containerSpec": false
+      };
+      break;
+    case 'ingresses':
+      kind = {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "prefix": "apis",
+        "containerSpec": false
+      };
+      break;
+  }
+
+  return kind;
+};
+
+exports.setrcjson = function (reqdata) {
+  var kubeObjJson = 
+        {
+          "metadata": {
+            "annotations": reqdata.annotations,
+            "name": reqdata.name,
+            "namespace": reqdata.namespace
+          }
+        };
+  
+  var tmpJson = this.getKind(reqdata.type);
+  
+  console.log(reqdata.key, "Type:", reqdata.type);
+  
+  switch (reqdata.type) {
+    case 'configmaps':
+      //nothing to do yet
+      break;
+    case 'deployments':
+      tmpJson.spec = {
+        "replicas": 2,
+        "strategy": {
+          "type": "RollingUpdate",
+          "rollingUpdate": {
+            "maxUnavailable": "30%",
+            "maxSurge": "60%"
+            },
+          },
+        "template": {
+          "metadata": {
+            "labels": {
+              "build": reqdata.build,
+              "service": reqdata.name,
+              "group": "green"
+            },
+            "name": "mytemplate-" + reqdata.name
+          },
+          "spec": {
+            "containers": []
+          }
+        }
+      };
+      break;
+    case 'daemonsets':
+      tmpJson.spec = {
+        "replicas": 2,
+        "template": {
+          "metadata": {
+            "labels": {
+              "build": reqdata.build,
+              "service": reqdata.name,
+              "group": "green"
+            },
+            "name": "mytemplate-" + reqdata.name
+          },
+          "spec": {
+            "containers": []
+          }
+        }
+      };
+      break;
+    case 'jobs':
+      tmpJson.spec = {
+        "template": {
+          "metadata": {
+            "labels": {
+              "build": reqdata.build,
+              "service": reqdata.name,
+              "group": "green"
+            },
+            "name": "mytemplate-" + reqdata.name
+          },
+          "spec": {
+            "restartPolicy": reqdata.restartPolicy || "OnFailure",
+            "containers": []
+          }
+        }
+      };
+    case 'secrets':
+      //nothing to do yet
+      break;
+    }
+  
+  if (reqdata.type == "deployments" || reqdata.type == "daemonsets") {
+    
+    //set group selector if it exists
+    if (reqdata.targetGroup != "" && reqdata.targetGroup != null) {
+      tmpJson.metareqdata.name = reqdata.name + "-" + reqdata.targetGroup;
+      tmpJson.spec.selector.group = reqdata.targetGroup;
+      tmpJson.spec.template.metareqdata.labels.group = reqdata.targetGroup;
+    }
+
+    if (reqdata.imagePullSecrets != "" && reqdata.imagePullSecrets != null) {
+      tmpJson.spec.template.spec.imagePullSecrets = [];
+      tmpJson.spec.template.spec.imagePullSecrets.push({name: reqdata.imagePullSecrets});
+    }
+
+    //set replicas if it exists
+    if (reqdata.replicas != "" && reqdata.replicas != null) {
+      tmpJson.spec.replicas = reqdata.replicas;
+    }
+  }
+  
+  //set override spec last
+  _.merge(tmpJson, reqdata.k8s);
+  
+  _.merge(kubeObjJson, tmpJson);
+  
+  //get kind
+  reqdata.kind = exports.getKind(reqdata.type);
+
+  //for each container
+  if (reqdata.kind.containerSpec) {
+    for (var i = 0; i < reqdata.containers.length; i++) {
+      k8sHelper.handleContainerParams(reqdata.healthCheck, reqdata.containers[i], kubeObjJson);
+    }
+  }
+
+  reqdata.kubercjson = kubeObjJson;
+  
+};
+
+exports.setsvcjson = function (reqdata) {
+  reqdata.kubesvcjson = 
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "annotations": reqdata.annotations,
+        "name": reqdata.name,
+        "labels": {
+          "service": reqdata.name
+        }
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": reqdata.targetPort,
+            "targetPort": reqdata.targetPort
+          }
+        ],
+        "selector": {
+          "service": reqdata.name
+        },
+        "type": reqdata.serviceType
+      }
+    }; 
+
+    //set group selector if it exists
+    if (reqdata.targetGroup != "" && reqdata.targetGroup != null) {
+      reqdata.kubesvcjson.spec.selector.group = reqdata.targetGroup;
+    }
+}

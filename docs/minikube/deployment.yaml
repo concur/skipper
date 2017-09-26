@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: skipper
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: skipper
+  strategy:
+    rollingUpdate:
+      maxSurge: 60%
+      maxUnavailable: 30%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: skipper
+    spec:
+      containers:
+      - env:
+        - name: skipperEndpoint
+          value: https://skipper.192.168.99.100.xip.io
+        image: concur/skipper:latest
+        imagePullPolicy: Always
+        name: skipper
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+      restartPolicy: Always
+      schedulerName: default-scheduler

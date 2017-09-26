@@ -1,0 +1,38 @@
+{
+  "name": "skipper",
+  "version": "0.2.0",
+  "private": true,
+  "description": "skipper is in command of k8s clusters",
+  "keywords": [],
+  "author": "danw@concur.com",
+  "license": "",
+  "main": "app.js",
+  "dependencies": {
+    "@awspilot/dynamodb": "^1.0.0",
+    "async": "^2.5.0",
+    "aws-sdk": "^2.122.0",
+    "body-parser": "^1.18.2",
+    "chai": "^4.1.2",
+    "chai-http": "^3.0.0",
+    "console-stamp": "^0.2.5",
+    "cors": "^2.8.4",
+    "express": "^4.15.5",
+    "jsonfile": "^3.0.1",
+    "lodash": "^4.17.4",
+    "mkdirp": "^0.5.1",
+    "node-kubernetes-client": "^0.3.1",
+    "path": "^0.12.7",
+    "proxy-agent": "^2.1.0",
+    "swagger-tools": "^0.10.1",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "istanbul": "^1.1.0-alpha.1",
+    "should": "^11",
+    "supertest": "^3"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "test": "istanbul cover _mocha -- -R spec"
+  }
+}

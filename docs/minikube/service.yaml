@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: skipper
+  namespace: default
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: skipper
+  sessionAffinity: None
+  type: ClusterIP

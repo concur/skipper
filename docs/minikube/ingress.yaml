@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: skipper
+  namespace: default
+spec:
+  rules:
+  - host: skipper.192.168.99.100.xip.io
+    http:
+      paths:
+      - backend:
+          serviceName: skipper
+          servicePort: 5000
+        path: /
+  tls:
+  - hosts:
+    - skipper.192.168.99.100.xip.io
