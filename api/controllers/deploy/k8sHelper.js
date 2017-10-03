@@ -168,7 +168,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
     containerjson.volumeMounts.push({
         "name": "secret-volume",
         "mountPath": containerReqdata.secretmount.mountpath,
-        "subPath": containerReqData.secretmount.subpath
+        "subPath": containerReqdata.secretmount.subpath
     });
   }
 
