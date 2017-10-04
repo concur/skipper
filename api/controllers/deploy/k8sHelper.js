@@ -21,7 +21,7 @@ exports.addENV = function (array, value) {
   if (array.env == undefined || array.env == null || array.env.constructor !== Array) {
     array.env = [];
   }
-  
+
   if (!value.hasOwnProperty('name')) {
     return;
   }
@@ -38,8 +38,8 @@ exports.addENV = function (array, value) {
 
 exports.handleContainerParams = function (healthCheck, containerReqdata, kubercjson) {
   //containerReqdata = reqdata.containers[i]
-  
-  var containerjson =           
+
+  var containerjson =
     {
       "name": containerReqdata.name,
       "image": containerReqdata.image,
@@ -51,7 +51,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
         limits: {}
       }
     };
-  
+
   //handle min/max cpu/mem
   if (containerReqdata.mincpu != null && containerReqdata.mincpu != "") {
     containerjson.resources.requests.cpu = containerReqdata.mincpu;
@@ -64,8 +64,8 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
   }
   if (containerReqdata.maxmem != null && containerReqdata.maxmem != "") {
     containerjson.resources.limits.memory = containerReqdata.maxmem;
-  }  
-  
+  }
+
   //handle multiple ports for the container if it's an array
   if (containerReqdata.port.constructor === Array) {
     for (var ports = 0; ports < containerReqdata.port.length; ports++) {
@@ -150,7 +150,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
     containerjson.readinessProbe.timeoutSeconds = containerReqdata.timeoutSeconds;
     containerjson.livenessProbe.timeoutSeconds = containerReqdata.timeoutSeconds;
   }
-  
+
   //handle secret volumes
   if (containerReqdata.secretmount != null && containerReqdata.secretmount.secret != null && containerReqdata.secretmount.mountpath != null) {
     if (kubercjson.spec.template.spec.volumes == undefined) {
@@ -167,10 +167,11 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
     }
     containerjson.volumeMounts.push({
         "name": "secret-volume",
-        "mountPath": containerReqdata.secretmount.mountpath
+        "mountPath": containerReqdata.secretmount.mountpath,
+        "subPath": containerReqdata.secretmount.subpath
     });
   }
-  
+
   //handle emptydir volumes
   if (containerReqdata.emptyDir != null && containerReqdata.emptyDir != "") {
     if (kubercjson.spec.template.spec.volumes == undefined) {
@@ -188,14 +189,14 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
         "mountPath": containerReqdata.emptyDir
     });
   }
-  
+
   //handle container securityContext
   if (containerReqdata.capabilities != null && containerReqdata.capabilities.constructor === Array) {
     containerjson.securityContext = {};
     containerjson.securityContext.capabilities = {};
     containerjson.securityContext.capabilities.add = containerReqdata.capabilities;
   }
-  
+
   //handle configmapMount
   if (containerReqdata.configMapMount != null && containerReqdata.configMapMount.constructor === Array) {
     for (var mounts = 0; mounts < containerReqdata.configMapMount.length; mounts++) {
@@ -213,18 +214,19 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
       }
       containerjson.volumeMounts.push({
           "name": "config-volume-" + mounts,
-          "mountPath": containerReqdata.configMapMount[mounts].mountPath
+          "mountPath": containerReqdata.configMapMount[mounts].mountPath,
+          "subPath": containerReqdata.configMapMount[mounts].subPath
       });
     }
   }
-  
+
   //handle env
   if (Array.isArray(containerReqdata.env)) {
     for (var envs = 0; envs < containerReqdata.env.length; envs++) {
       exports.addENV(containerjson.env, containerReqdata.env[envs]);
     }
   }
-  
+
   //handle configMapEnv
   if (containerReqdata.configMapEnv != null && containerReqdata.configMapEnv.constructor === Array) {
     for (var envs = 0; envs < containerReqdata.configMapEnv.length; envs++) {
@@ -239,7 +241,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
       });
     }
   }
-    
+
   //handle secretEnv
   if (containerReqdata.secretEnv != null && containerReqdata.secretEnv.constructor === Array) {
     for (var envs = 0; envs < containerReqdata.secretEnv.length; envs++) {
@@ -254,13 +256,13 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
       });
     }
   }
-  
+
   //add basic required template
   _.merge(kubercjson, {"spec":{"template":{"spec":{containers:[]}}}});
-  
+
   //add container specific json override to kubercjson
   _.merge(containerjson, containerReqdata.k8s);
-  
+
   kubercjson.spec.template.spec.containers.push(containerjson);
-  
+
 };
