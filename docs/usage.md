@@ -242,7 +242,9 @@ See the list of clusters for more details.
   <b># name of the secret resource in your namespace to mount</b>  <br>
     "secret": "mysecretstore",  <br><br>
     <b># location to mount it in inside your container</b> <br>
-    "mountpath": "/myvolume"  <br>
+    "mountpath": "/myvolume",  <br>
+    <b># OPTIONAL: subpath and/or file to mount</b> <br>
+    "subpath": "/subdir/file.txt"  <br>
     } <br> <br>
      </dd>
   <b># Use a configmap item for an environment variable in the container</b>  <br>
@@ -262,7 +264,9 @@ See the list of clusters for more details.
   <b># name of the configmap resource in your namespace to mount</b>  <br>
     "configMap": "consul",  <br><br>
     <b># location to mount it in inside your container</b> <br>
-    "mountPath": "/myvolume"  <br>
+    "mountPath": "/myvolume",  <br>
+    <b># OPTIONAL: subpath and/or file to mount</b> <br>
+    "subPath": "/subdir/file.txt"  <br>
     }] <br> <br>
      </dd>
   <b># Use a configmap item for an environment variable in the container</b>  <br>
