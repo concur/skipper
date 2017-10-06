@@ -31,6 +31,15 @@ exports.getKind = function(type) {
         "containerSpec": true
       };
       break;
+    case 'horizontalpodautoscalers':
+      kind = {
+        "apiVersion": "autoscaling/v1",
+        "kind": "HorizontalPodAutoscaler",
+        "prefix": "apis",
+        "containerSpec": false,
+        "namespaced": true
+      };
+      break;
     case 'jobs':
       kind = {
         "apiVersion": "extensions/v1beta1",
@@ -145,6 +154,26 @@ exports.setrcjson = function (reqdata) {
             "containers": []
           }
         }
+      };
+    case 'horizontalpodautoscalers':
+      tmpJson.spec = {
+        "scaleTargetRef": {
+          "apiVersion": "extensions/v1beta1",
+          "kind": "Deployment",
+          "name": reqdata.name,
+        },
+        "minReplicas": 1,
+        "maxReplicas": 10,
+        "targetCPUUtilizationPercentage": 50
+//        "metrics": [
+//          {
+//            "type": "Resource",
+//            "resource": {
+//              "name": "cpu",
+//              "targetAverageUtilization": 50
+//            }
+//          }
+//        ]
       };
     case 'secrets':
       //nothing to do yet
