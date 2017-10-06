@@ -154,7 +154,7 @@ const ensureObjectCU = function (Spec, apiConnectParams, objType, reqdata, callb
   var kind = k8sHelper.k8sTypes.getKind(objType), ConnectParams = JSON.parse(JSON.stringify(apiConnectParams)), ensureKubeAPI = {};
   ConnectParams.version = kind.apiVersion;
   ensureKubeAPI = new k8s(ConnectParams);
-  ensureKubeAPI.newObj = ensureKubeAPI.createCollection(objType, null, null, { apiPrefix : kind.prefix });
+  ensureKubeAPI.newObj = ensureKubeAPI.createCollection(objType, null, null, { apiPrefix : kind.prefix, namespaced: kind.namespaced });
 
   ensureKubeAPI.newObj.create(Spec, function (err, data) {
     if (err) {
@@ -176,7 +176,7 @@ const ensureServiceCU = function (Spec, apiConnectParams, objType, reqdata, call
       ensureKubeAPI = {};
   ConnectParams.version = kind.apiVersion;
   ensureKubeAPI = new k8s(ConnectParams);
-  ensureKubeAPI.newObj = ensureKubeAPI.createCollection(objType, null, null, { apiPrefix : kind.prefix });
+  ensureKubeAPI.newObj = ensureKubeAPI.createCollection(objType, null, null, { apiPrefix : kind.prefix, namespaced: kind.namespaced });
 
   ensureKubeAPI.newObj.get(Spec.metadata.name, function (err, data) {
     if (err && err.statusCode == 404) {
@@ -246,7 +246,7 @@ exports.deleteObject = function (objectName, apiConnectParams, objType, requestS
     var kind = k8sHelper.k8sTypes.getKind(objType), ConnectParams = JSON.parse(JSON.stringify(apiConnectParams)), deleteKubeAPI = {};
     ConnectParams.version = kind.apiVersion;
     var deleteKubeAPI = new k8s(ConnectParams);
-    deleteKubeAPI.delObj = deleteKubeAPI.createCollection(objType, null, null, { apiPrefix : kind.prefix });
+    deleteKubeAPI.delObj = deleteKubeAPI.createCollection(objType, null, null, { apiPrefix : kind.prefix, namespaced: kind.namespaced });
 
     var deleteFunc = function () {
       deleteKubeAPI.delObj.delete(objectName, function (err, data) {
