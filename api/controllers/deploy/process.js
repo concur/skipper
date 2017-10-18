@@ -148,6 +148,13 @@ exports.applyActionForLocation = function (reqdata, action, configloc, callback)
                     "tls": [{"hosts": [configLocation.serviceDNS]}]
                   }
                 };
+                
+                if (reqdata.annotations["sidecar.istio.io/inject"] == "true") {
+                  console.log(reqdata.key, "Adding istio annotation to ingress");
+                  kubeingress.metadata.annotations["kubernetes.io/ingress.class"] = "istio";
+                  kubeingress.spec.rules[0].http.paths[0].path = "/.*";
+                  delete kubeingress.spec.tls;
+                }
 
                 k8sHelper.k8sCRUD.ensureObject(kubeingress, kubeapiParams, 'ingresses', null, function (err, data) {
                   if (err) {
