@@ -171,6 +171,27 @@ const ensureObjectCU = function (Spec, apiConnectParams, objType, reqdata, callb
   });
 }
 
+const ensureObjectPatchCU = function (Spec, apiConnectParams, objType, reqdata, callback) {
+  var kind = k8sHelper.k8sTypes.getKind(objType), ConnectParams = JSON.parse(JSON.stringify(apiConnectParams)), ensureKubeAPI = {};
+  ConnectParams.version = kind.apiVersion;
+  ensureKubeAPI = new k8s(ConnectParams);
+  ensureKubeAPI.newObj = ensureKubeAPI.createCollection(objType, null, null, { apiPrefix : kind.prefix, namespaced: kind.namespaced });
+
+  ensureKubeAPI.newObj.create(Spec, function (err, data) {
+    if (err) {
+      ensureKubeAPI.newObj.patch(Spec.metadata.name, Spec, function (err, data) {
+        if (err) {
+          return callback(err, {"message": "Error patching " + objType + ": " + Spec.metadata.name + " " + err});
+        } else {
+          return callback(null, {"message": objType + " patched: " + Spec.metadata.name});
+        }
+      });
+    } else {
+      return callback(null, {"message": objType + " created: " + Spec.metadata.name});
+    }
+  });
+}
+
 const ensureServiceCU = function (Spec, apiConnectParams, objType, reqdata, callback) {
   var kind = k8sHelper.k8sTypes.getKind(objType), ConnectParams = JSON.parse(JSON.stringify(apiConnectParams)), 
       ensureKubeAPI = {};
@@ -203,6 +224,9 @@ exports.ensureObject = function (Spec, apiConnectParams, objType, requestStore, 
   var ensureFunc = ensureObjectCU, reqdata = JSON.parse(JSON.stringify(requestStore));
   if (objType == "services") {
     ensureFunc = ensureServiceCU;
+  } else if (_.get(reqdata, 'patch', false) == true) {
+    console.log(reqdata.key, "using patch method.");
+    ensureFunc = ensureObjectPatchCU;
   }
   ensureFunc(Spec, apiConnectParams, objType, reqdata, function(err, data) {
     if (err) {

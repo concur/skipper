@@ -211,6 +211,9 @@ See the list of clusters for more details.
 **# pass json data directly to all kubernetes clusters** <br>
 "k8s": {ANY VALID JSON} <br>
 
+**# control if objects are updated using a patch or post method** <br>
+"patch": true/false <br>
+
 <dl>
 "containers": [{ <br>
   "name": "tinynode", <br>
