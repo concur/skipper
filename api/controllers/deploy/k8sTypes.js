@@ -180,13 +180,14 @@ exports.setrcjson = function (reqdata) {
       break;
     }
   
-  if (reqdata.type == "deployments" || reqdata.type == "daemonsets") {
-    
+  if (_.has(reqdata, 'containers[0]')) {
+    //set version tag
+    tmpJson.spec.template.metadata.labels.version = reqdata.version;
+
     //set group selector if it exists
     if (reqdata.targetGroup != "" && reqdata.targetGroup != null) {
-      tmpJson.metareqdata.name = reqdata.name + "-" + reqdata.targetGroup;
-      tmpJson.spec.selector.group = reqdata.targetGroup;
-      tmpJson.spec.template.metareqdata.labels.group = reqdata.targetGroup;
+      kubeObjJson.metadata.name = reqdata.name + "-" + reqdata.targetGroup;
+      tmpJson.spec.template.metadata.labels.group = reqdata.targetGroup;
     }
 
     if (reqdata.imagePullSecrets != "" && reqdata.imagePullSecrets != null) {
