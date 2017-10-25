@@ -169,7 +169,19 @@ exports.validateUpdateIndex = function (reqdata, callback) {
   reqdata.deployClusters = [];
   reqdata.deleteClusters = [];
   reqdata.endpoints = {}; //setup for adding records later
-  reqdata.version = Date.now();
+
+  // get the version from the first container tag
+  if (!_.has(reqdata, 'version') && _.has(reqdata, 'containers[0].image')) {
+    var ver = _.split(reqdata.containers[0].image, ":", 2);
+    if (ver.length == 2 && ver[1] != "") {
+      reqdata.version = ver[1];
+    }
+  }
+
+  //set version if still not set
+  if (!_.has(reqdata, 'version') || reqdata.version == "") {
+    reqdata.version = Date.now().toString();
+  }
   
   if (reqdata.loadBalanced == true ||
       reqdata.targetPort != null) {

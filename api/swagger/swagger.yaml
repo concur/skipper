@@ -381,6 +381,9 @@ definitions:
       f5poolname:
         type: "string"
         description: "overrides the pool name created by the f5 plugin to be the value specified instead of the servicename-namespace. Creates an annotation named f5poolname."
+      version:
+        type: "string"
+        description: "override version from default of container tag or timestamp."
   objectDelParams:
     type: "object"
     required:
