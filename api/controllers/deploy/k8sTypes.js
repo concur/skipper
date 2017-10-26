@@ -105,6 +105,11 @@ exports.setrcjson = function (reqdata) {
             "maxSurge": "60%"
             },
           },
+        "selector": {
+          "matchLabels": {
+            "service": reqdata.name,
+          }
+        },
         "template": {
           "metadata": {
             "labels": {
