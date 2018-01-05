@@ -43,18 +43,6 @@ mocha -g example
 
 `curl -k https://mydeployment-default.192.168.99.100.xip.io/`
 
-
-## Hoverfly
-
-By default tests will run against minikube on 192.168.99.100. If you prefer to run against a mock of k8s you can use [hoverfly](https://hoverfly.io/).
-
-```
-hoverctl start --proxy-port 8500
-hoverctl import ./hoverfly/k8s.json
-hoverctl mode simulate --matching-strategy first
-export mockproxy=http://127.0.0.1:8500 #used by mocha tests
-```
-
 ## Testing against a custom set of clusters
 
 You can also specify custom variables for tests to run against your own kubernetes infrastructure using the following environment variables.
