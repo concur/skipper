@@ -156,17 +156,28 @@ const ensureObjectCU = function (Spec, apiConnectParams, objType, reqdata, callb
   ensureKubeAPI = new k8s(ConnectParams);
   ensureKubeAPI.newObj = ensureKubeAPI.createCollection(objType, null, null, { apiPrefix : kind.prefix, namespaced: kind.namespaced });
 
-  ensureKubeAPI.newObj.create(Spec, function (err, data) {
-    if (err) {
-      ensureKubeAPI.newObj.update(Spec.metadata.name, Spec, function (err, data) {
+  ensureKubeAPI.newObj.get(Spec.metadata.name, function (err, data) {
+    if (err && err.statusCode == 404) {
+      //create
+      ensureKubeAPI.newObj.create(Spec, function (err, data) {
+        if (err) {
+          return callback(err, {"message": "Error creating " + objType + ": " + Spec.metadata.name + " " + err});
+        } else {
+          return callback(null, {"message": objType + " created: " + Spec.metadata.name});
+        }
+      });
+    } else if (err && err.statusCode != 404) {
+      return callback(err, {"message": "Error checking status " + objType + ": " + Spec.metadata.name + " " + err});
+    } else {
+      //update
+      Spec.metadata.resourceVersion = data.metadata.resourceVersion;
+      ensureKubeAPI.newObj.update(Spec.metadata.name, Spec, function (err, data2) {
         if (err) {
           return callback(err, {"message": "Error updating " + objType + ": " + Spec.metadata.name + " " + err});
         } else {
           return callback(null, {"message": objType + " updated: " + Spec.metadata.name});
         }
       });
-    } else {
-      return callback(null, {"message": objType + " created: " + Spec.metadata.name});
     }
   });
 }
@@ -177,17 +188,28 @@ const ensureObjectPatchCU = function (Spec, apiConnectParams, objType, reqdata, 
   ensureKubeAPI = new k8s(ConnectParams);
   ensureKubeAPI.newObj = ensureKubeAPI.createCollection(objType, null, null, { apiPrefix : kind.prefix, namespaced: kind.namespaced });
 
-  ensureKubeAPI.newObj.create(Spec, function (err, data) {
-    if (err) {
-      ensureKubeAPI.newObj.patch(Spec.metadata.name, Spec, function (err, data) {
+  ensureKubeAPI.newObj.get(Spec.metadata.name, function (err, data) {
+    if (err && err.statusCode == 404) {
+      //create
+      ensureKubeAPI.newObj.create(Spec, function (err, data) {
+        if (err) {
+          return callback(err, {"message": "Error creating " + objType + ": " + Spec.metadata.name + " " + err});
+        } else {
+          return callback(null, {"message": objType + " created: " + Spec.metadata.name});
+        }
+      });
+    } else if (err && err.statusCode != 404) {
+      return callback(err, {"message": "Error checking status " + objType + ": " + Spec.metadata.name + " " + err});
+    } else {
+      //update
+      Spec.metadata.resourceVersion = data.metadata.resourceVersion;
+      ensureKubeAPI.newObj.patch(Spec.metadata.name, Spec, function (err, data2) {
         if (err) {
           return callback(err, {"message": "Error patching " + objType + ": " + Spec.metadata.name + " " + err});
         } else {
           return callback(null, {"message": objType + " patched: " + Spec.metadata.name});
         }
       });
-    } else {
-      return callback(null, {"message": objType + " created: " + Spec.metadata.name});
     }
   });
 }
@@ -205,7 +227,7 @@ const ensureServiceCU = function (Spec, apiConnectParams, objType, reqdata, call
       ensureObjectCU(Spec, apiConnectParams, objType, reqdata, function(err, data2) {
         return callback(err, {"message": objType + " created: " + Spec.metadata.name});
       });
-    } else if (err) {
+    } else if (err && err.statusCode != 404) {
       console.log(err);
       return callback(err, {"message": objType + " error checking for service: " + Spec.metadata.name});
     } else {

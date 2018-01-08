@@ -1,33 +1,51 @@
 version: 2
 jobs:
   build:
-    docker:
-      # specify the version you desire here
-      - image: circleci/node:8.3.0
-
+    machine: true
     working_directory: ~/repo
-
+    environment:
+      CHANGE_MINIKUBE_NONE_USER: true
     steps:
       - checkout
-
       # Download and cache dependencies
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "package.json" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
+      - run:
+          command: |
+            curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v1.8.4/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+      - run:
+          command: |
+            curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+      - run:
+          command: |
+            sudo minikube start --vm-driver=none
+      - run:
+          command: |
+            sudo minikube update-context
+      - run:
+          name: Install node@8.3.0
+          command: |
+            set +e             
+            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
+            export NVM_DIR="/opt/circleci/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install v8.3.0
+            nvm alias default v8.3.0
 
-      - run: sudo npm install -g mocha
-      - run: sudo npm install -g istanbul@1.1.0-alpha.1
+            # Each step uses the same `$BASH_ENV`, so need to modify it
+            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
+            echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
+      - run: npm install -g mocha
+      - run: npm install -g istanbul@1.1.0-alpha.1
       - run: npm update
-
       - save_cache:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
-        
-      # run tests!
-      - run: PATH=$PATH:$(pwd)/hoverfly && hoverctl start --proxy-port 8500 && hoverctl import ./hoverfly/k8s.json && hoverctl mode simulate --matching-strategy first && istanbul cover _mocha -- -R spec
+      - run: sudo chown -R $USER /home/circleci/.minikube/* && sudo chown -R $USER /home/circleci/.kube/* && kubectl proxy & npm test
       - store_artifacts:
           path: ~/repo/coverage/lcov-report/
 

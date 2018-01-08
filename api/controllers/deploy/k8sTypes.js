@@ -72,6 +72,15 @@ exports.getKind = function(type) {
         "containerSpec": false
       };
       break;
+    case 'egressrules':
+      kind = {
+        "apiVersion": "config.istio.io/v1alpha2",
+        "kind": "EgressRule",
+        "prefix": "apis",
+        "containerSpec": false,
+        "namespaced": true
+      };
+      break;
   }
 
   return kind;
@@ -182,6 +191,14 @@ exports.setrcjson = function (reqdata) {
       };
     case 'secrets':
       //nothing to do yet
+      break;
+    case 'egressrules':
+      tmpJson.spec = {
+        "destination": {
+          "service": _.get(reqdata, 'egress.destination', reqdata.name) 
+        },
+        "ports": _.get(reqdata, 'egress.ports', [{"port": 443, "protocol": "https"}])
+      };
       break;
     }
   

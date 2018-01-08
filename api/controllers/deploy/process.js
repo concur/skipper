@@ -27,7 +27,9 @@ exports.applyActionForLocation = function (reqdata, action, configloc, callback)
     version: 'v1',
     token: reqdata.token,
     namespace:  reqdata.namespace,
-    reqOptions: {proxy: configLocation.proxy || null},
+    reqOptions: {proxy: configLocation.proxy || null,
+                 headers: {'correlationid': reqdata.correlationid || null}
+                },
     timeout: 20000,
     cluster: configLocation
   };

@@ -22,7 +22,7 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
 }
 
-const deployNum = getRandomInt(1, 1000);
+const deployNum = 437;
 var endpoints = {};
 
 describe('deploy tests', () => {
@@ -90,7 +90,7 @@ describe('deploy tests', () => {
       chai.request(server)
       .post('/api/v1/object')
       .set("Content-Type", "application/json")
-      .send({"type": "secrets", "name":"vault", "locations":[{"name":config.test.kubelocation}], "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "k8s": { "data": { "auth": "NTQwNzk4RkMtMTg1NS00QjA4LTg4NDQtRkZBS0VUT0tFTkZGCg==" } }})
+      .send({"correlationid": "secret1", "type": "secrets", "name":"vault", "locations":[{"name":config.test.kubelocation}], "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "k8s": { "data": { "auth": "NTQwNzk4RkMtMTg1NS00QjA4LTg4NDQtRkZBS0VUT0tFTkZGCg==" } }})
       .end((err, res) => {
         res.status.should.be.equal(200);
         res.body.should.be.an.instanceOf(Object).and.have.properties(['name', 'locations', 'token', 'namespace', 'k8s', 'deployClusters', 'endpoints', 'result']);
@@ -111,7 +111,7 @@ describe('deploy tests', () => {
       chai.request(server)
       .post('/api/v1/object')
       .set("Content-Type", "application/json")
-      .send({"type": "configmaps", "name":"config", "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "k8s": { "data": { "mydata": "Y2VudHJhbC1hcmNoaXRlY3R1cmU=" } }, "clusters":2})
+      .send({"correlationid": "configmap1", "type": "configmaps", "name":"config", "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "k8s": { "data": { "mydata": "Y2VudHJhbC1hcmNoaXRlY3R1cmU=" } }, "clusters":2})
       .end((err, res) => {
         res.status.should.be.equal(200);
         res.body.should.be.an.instanceOf(Object).and.have.properties(['name', 'locations', 'token', 'namespace', 'k8s', 'deployClusters', 'endpoints', 'result']);
@@ -133,7 +133,7 @@ describe('deploy tests', () => {
       chai.request(server)
       .post('/api/v1/deployment')
       .set("Content-Type", "application/json")
-      .send({"containers":[{"name":"mydeployment-" + deployNum, "image":"treeder/tiny-node:latest", "port": 8080, "env": [{"name": "NODE_ENV", "value": ""}], "configMapEnv": [{"configMap": "config", "key": "mydata", "env": "RABBITURL"}], "secretEnv": [{"secret": "vault", "key": "auth", "env": "VAULT_TOKEN"}], "configMapMount": [{"configMap": "config", "mountPath": "/data"}], "capabilities": ["IPC_LOCK"], "emptyDir": "/mydirectory", "secretmount": {"secret": "vault", "mountpath": "/mysecrets"}, "timeoutSeconds": 5, "readinessFailureThreshold": 6, "livenessFailureThreshold": 7, "livenessPeriodSeconds": 8, "readinessPeriodSeconds": 9, "command": ["node", "server.js"], "mincpu": "300m", "maxcpu": "500m", "minmem": "100Mi", "maxmem": "200Mi", "k8s": {"lifecycle": {"postStart": {"exec": {"command": ["/bin/sh", "-c", "echo 127.0.0.100 test >> /etc/hosts"]}}}}}], "name":"mydeployment", "targetPort":8080, "user": config.test.kubenamespace, "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "locations": [{"name": config.test.kubelocation, "clusters": [config.test.kubecluster]}], "annotations": {"deploynum": deployNum.toString()}, "loadBalanced":false, "healthCheck":"http", "replicas":1})
+      .send({"correlationid": "deployment1", "containers":[{"name":"mydeployment-" + deployNum, "image":"treeder/tiny-node:latest", "port": 8080, "env": [{"name": "NODE_ENV", "value": ""}], "configMapEnv": [{"configMap": "config", "key": "mydata", "env": "RABBITURL"}], "secretEnv": [{"secret": "vault", "key": "auth", "env": "VAULT_TOKEN"}], "configMapMount": [{"configMap": "config", "mountPath": "/data"}], "capabilities": ["IPC_LOCK"], "emptyDir": "/mydirectory", "secretmount": {"secret": "vault", "mountpath": "/mysecrets"}, "timeoutSeconds": 5, "readinessFailureThreshold": 6, "livenessFailureThreshold": 7, "livenessPeriodSeconds": 8, "readinessPeriodSeconds": 9, "command": ["node", "server.js"], "mincpu": "300m", "maxcpu": "500m", "minmem": "100Mi", "maxmem": "200Mi", "k8s": {"lifecycle": {"postStart": {"exec": {"command": ["/bin/sh", "-c", "echo 127.0.0.100 test >> /etc/hosts"]}}}}}], "name":"mydeployment", "targetPort":8080, "user": config.test.kubenamespace, "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "locations": [{"name": config.test.kubelocation, "clusters": [config.test.kubecluster]}], "annotations": {"deploynum": deployNum.toString()}, "loadBalanced":false, "healthCheck":"http", "replicas":1})
       .end((err, res) => {
         res.status.should.be.equal(200);
         res.body.should.be.an.instanceOf(Object).and.have.properties(['locations', 'annotations', 'kubesvcjson', 'kubercjson', 'deployClusters', 'endpoints', 'result']);
@@ -169,7 +169,7 @@ describe('deploy tests', () => {
       chai.request(server)
       .post('/api/v1/deployment')
       .set("Content-Type", "application/json")
-      .send({"containers":[{"name":"mydeployment-" + deployNum, "image":"treeder/tiny-node:latest", "port": 8080, "env": [{"name": "NODE_ENV", "value": ""}], "configMapEnv": [{"configMap": "config", "key": "mydata", "env": "RABBITURL"}], "secretEnv": [{"secret": "vault", "key": "auth", "env": "VAULT_TOKEN"}], "configMapMount": [{"configMap": "config", "mountPath": "/data"}], "capabilities": ["IPC_LOCK"], "emptyDir": "/mydirectory", "secretmount": {"secret": "vault", "mountpath": "/mysecrets"}, "timeoutSeconds": 5, "readinessFailureThreshold": 6, "livenessFailureThreshold": 7, "livenessPeriodSeconds": 8, "readinessPeriodSeconds": 9, "command": ["node", "server.js"], "mincpu": "300m", "maxcpu": "500m", "minmem": "100Mi", "maxmem": "200Mi", "k8s": {"lifecycle": {"postStart": {"exec": {"command": ["/bin/sh", "-c", "echo 127.0.0.100 test >> /etc/hosts"]}}}}}], "name":"mydeployment", "targetPort":3001, "user": config.test.kubenamespace, "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "locations": [{"name": config.test.kubelocation, "clusters": [config.test.kubecluster]}], "annotations": {"deploynum": deployNum.toString()}, "loadBalanced":false, "healthCheck":"http", "replicas":1})
+      .send({"correlationid": "deployment2", "containers":[{"name":"mydeployment-" + deployNum, "image":"treeder/tiny-node:latest", "port": 8080, "env": [{"name": "NODE_ENV", "value": ""}], "configMapEnv": [{"configMap": "config", "key": "mydata", "env": "RABBITURL"}], "secretEnv": [{"secret": "vault", "key": "auth", "env": "VAULT_TOKEN"}], "configMapMount": [{"configMap": "config", "mountPath": "/data"}], "capabilities": ["IPC_LOCK"], "emptyDir": "/mydirectory", "secretmount": {"secret": "vault", "mountpath": "/mysecrets"}, "timeoutSeconds": 5, "readinessFailureThreshold": 6, "livenessFailureThreshold": 7, "livenessPeriodSeconds": 8, "readinessPeriodSeconds": 9, "command": ["node", "server.js"], "mincpu": "300m", "maxcpu": "500m", "minmem": "100Mi", "maxmem": "200Mi", "k8s": {"lifecycle": {"postStart": {"exec": {"command": ["/bin/sh", "-c", "echo 127.0.0.100 test >> /etc/hosts"]}}}}}], "name":"mydeployment", "targetPort":3001, "user": config.test.kubenamespace, "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "locations": [{"name": config.test.kubelocation, "clusters": [config.test.kubecluster]}], "annotations": {"deploynum": deployNum.toString()}, "loadBalanced":false, "healthCheck":"http", "replicas":1})
       .end((err, res) => {
         res.status.should.be.equal(200);
         res.body.should.be.an.instanceOf(Object).and.have.properties(['locations', 'annotations', 'kubesvcjson', 'kubercjson', 'deployClusters', 'endpoints', 'result']);
@@ -204,7 +204,7 @@ describe('deploy tests', () => {
       chai.request(server)
       .post('/api/v1/deployment')
       .set("Content-Type", "application/json")
-      .send({"containers":[{"name":"mydeployment-" + deployNum, "image":"treeder/tiny-node:latest", "port": 8080, "configMapEnv": [{"configMap": "config", "key": "mydata", "env": "RABBITURL"}], "secretEnv": [{"secret": "vault", "key": "auth", "env": "VAULT_TOKEN"}], "configMapMount": [{"configMap": "config", "mountPath": "/data"}], "capabilities": ["IPC_LOCK"], "emptyDir": "/mydirectory", "secretmount": {"secret": "vault", "mountpath": "/mysecrets"}, "timeoutSeconds": 5, "readinessFailureThreshold": 6, "livenessFailureThreshold": 7, "livenessPeriodSeconds": 8, "readinessPeriodSeconds": 9, "command": ["node", "server.js"], "mincpu": "300m", "maxcpu": "500m", "minmem": "100Mi", "maxmem": "200Mi", "k8s": {"lifecycle": {"postStart": {"exec": {"command": ["/bin/sh", "-c", "echo 127.0.0.100 test >> /etc/hosts"]}}}}}], "name":"mydeployment", "targetPort":3001, "user": config.test.kubenamespace, "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "locations": [{"name": config.test.kubelocation}], "clusters": 1, "annotations": {"deploynum": deployNum.toString()}, "loadBalanced":true, "healthCheck":"http", "replicas":1})
+      .send({"correlationid": "deployment3", "containers":[{"name":"mydeployment-" + deployNum, "image":"treeder/tiny-node:latest", "port": 8080, "configMapEnv": [{"configMap": "config", "key": "mydata", "env": "RABBITURL"}], "secretEnv": [{"secret": "vault", "key": "auth", "env": "VAULT_TOKEN"}], "configMapMount": [{"configMap": "config", "mountPath": "/data"}], "capabilities": ["IPC_LOCK"], "emptyDir": "/mydirectory", "secretmount": {"secret": "vault", "mountpath": "/mysecrets"}, "timeoutSeconds": 5, "readinessFailureThreshold": 6, "livenessFailureThreshold": 7, "livenessPeriodSeconds": 8, "readinessPeriodSeconds": 9, "command": ["node", "server.js"], "mincpu": "300m", "maxcpu": "500m", "minmem": "100Mi", "maxmem": "200Mi", "k8s": {"lifecycle": {"postStart": {"exec": {"command": ["/bin/sh", "-c", "echo 127.0.0.100 test >> /etc/hosts"]}}}}}], "name":"mydeployment", "targetPort":3001, "user": config.test.kubenamespace, "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "locations": [{"name": config.test.kubelocation}], "clusters": 1, "annotations": {"deploynum": deployNum.toString()}, "loadBalanced":true, "healthCheck":"http", "replicas":1})
       .end((err, res) => {
         res.status.should.be.equal(200);
         res.body.should.be.an.instanceOf(Object).and.have.properties(['locations', 'annotations', 'kubesvcjson', 'kubercjson', 'deployClusters', 'endpoints', 'result']);
@@ -239,7 +239,7 @@ describe('deploy tests', () => {
       chai.request(server)
       .post('/api/v1/deployment')
       .set("Content-Type", "application/json")
-      .send({"containers":[{"name":"mydeployment-" + deployNum, "image":"treeder/tiny-node:latest", "port": 8080, "configMapEnv": [{"configMap": "config", "key": "mydata", "env": "RABBITURL"}], "secretEnv": [{"secret": "vault", "key": "auth", "env": "VAULT_TOKEN"}], "configMapMount": [{"configMap": "config", "mountPath": "/data"}], "capabilities": ["IPC_LOCK"], "emptyDir": "/mydirectory", "secretmount": {"secret": "vault", "mountpath": "/mysecrets"}, "timeoutSeconds": 5, "readinessFailureThreshold": 6, "livenessFailureThreshold": 7, "livenessPeriodSeconds": 8, "readinessPeriodSeconds": 9, "command": ["node", "server.js"], "mincpu": "300m", "maxcpu": "500m", "minmem": "100Mi", "maxmem": "200Mi", "k8s": {"lifecycle": {"postStart": {"exec": {"command": ["/bin/sh", "-c", "echo 127.0.0.100 test >> /etc/hosts"]}}}}}], "name":"mydeployment", "targetPort":8080, "user": config.test.kubenamespace, "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "locations": [{"name": config.test.kubelocation}], "annotations": {"deploynum": deployNum.toString()}, "loadBalanced":true, "healthCheck":"http", "replicas":1})
+      .send({"correlationid": "deployment4", "containers":[{"name":"mydeployment-" + deployNum, "image":"treeder/tiny-node:latest", "port": 8080, "configMapEnv": [{"configMap": "config", "key": "mydata", "env": "RABBITURL"}], "secretEnv": [{"secret": "vault", "key": "auth", "env": "VAULT_TOKEN"}], "configMapMount": [{"configMap": "config", "mountPath": "/data"}], "capabilities": ["IPC_LOCK"], "emptyDir": "/mydirectory", "secretmount": {"secret": "vault", "mountpath": "/mysecrets"}, "timeoutSeconds": 5, "readinessFailureThreshold": 6, "livenessFailureThreshold": 7, "livenessPeriodSeconds": 8, "readinessPeriodSeconds": 9, "command": ["node", "server.js"], "mincpu": "300m", "maxcpu": "500m", "minmem": "100Mi", "maxmem": "200Mi", "k8s": {"lifecycle": {"postStart": {"exec": {"command": ["/bin/sh", "-c", "echo 127.0.0.100 test >> /etc/hosts"]}}}}}], "name":"mydeployment", "targetPort":8080, "user": config.test.kubenamespace, "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "locations": [{"name": config.test.kubelocation}], "annotations": {"deploynum": deployNum.toString()}, "loadBalanced":true, "healthCheck":"http", "replicas":1})
       .end((err, res) => {
         res.status.should.be.equal(200);
         res.body.should.be.an.instanceOf(Object).and.have.properties(['locations', 'annotations', 'kubesvcjson', 'kubercjson', 'deployClusters', 'endpoints', 'result']);
@@ -324,7 +324,7 @@ describe('deploy tests', () => {
       chai.request(server)
       .delete('/api/v1/object')
       .set("Content-Type", "application/json")
-      .send({"type": "configmaps", "name":"config", "locations":[{"name":config.test.kubelocation}], "token": config.test.kubetoken, "namespace": config.test.kubenamespace})
+      .send({"correlationid": "configmap2", "type": "configmaps", "name":"config", "locations":[{"name":config.test.kubelocation}], "token": config.test.kubetoken, "namespace": config.test.kubenamespace})
       .end((err, res) => {
         res.status.should.be.equal(200);
         res.body.should.be.an.instanceOf(Object).and.have.properties(['name', 'locations', 'token', 'namespace', 'deleteClusters', 'result']);
@@ -339,7 +339,7 @@ describe('deploy tests', () => {
       chai.request(server)
       .delete('/api/v1/object')
       .set("Content-Type", "application/json")
-      .send({"type": "configmaps", "name":"config", "locations":[{"name":config.test.kubelocation}], "token": "", "namespace": config.test.kubenamespace})
+      .send({"correlationid": "configmap3", "type": "configmaps", "name":"config", "locations":[{"name":config.test.kubelocation}], "token": "", "namespace": config.test.kubenamespace})
       .end((err, res) => {
         res.status.should.be.equal(422);
         res.body.should.be.an.instanceOf(Object).and.have.properties(['name', 'locations', 'token', 'namespace', 'deleteClusters', 'result']);
@@ -357,7 +357,7 @@ describe('deploy tests', () => {
       chai.request(server)
       .delete('/api/v1/object')
       .set("Content-Type", "application/json")
-      .send({"type": "secrets", "name":"vault", "locations":[{"name":config.test.kubelocation}], "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "clusters":2})
+      .send({"correlationid": "secrets2", "type": "secrets", "name":"vault", "locations":[{"name":config.test.kubelocation}], "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "clusters":2})
       .end((err, res) => {
         res.status.should.be.equal(200);
         res.body.should.be.an.instanceOf(Object).and.have.properties(['name', 'locations', 'token', 'namespace', 'deleteClusters', 'result']);
@@ -374,7 +374,7 @@ describe('deploy tests', () => {
       chai.request(server)
       .delete('/api/v1/deployment')
       .set("Content-Type", "application/json")
-      .send({"name":"mydeployment", "locations":[{"name":config.test.kubelocation}],"token": config.test.kubetoken, "namespace": config.test.kubenamespace, "removeService": true})
+      .send({"correlationid": "deployment5", "name":"mydeployment", "locations":[{"name":config.test.kubelocation}],"token": config.test.kubetoken, "namespace": config.test.kubenamespace, "removeService": true})
       .end((err, res) => {
         res.status.should.be.equal(200);
         res.body.should.be.an.instanceOf(Object).and.have.properties(['locations', 'deleteClusters', 'result']);
