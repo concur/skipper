@@ -81,6 +81,15 @@ exports.getKind = function(type) {
         "namespaced": true
       };
       break;
+    case 'routerules':
+      kind = {
+        "apiVersion": "config.istio.io/v1alpha2",
+        "kind": "RouteRule",
+        "prefix": "apis",
+        "containerSpec": false,
+        "namespaced": true
+      };
+      break;
   }
 
   return kind;
