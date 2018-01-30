@@ -227,8 +227,8 @@ exports.validateUpdateIndex = function (reqdata, callback) {
     reqdata.type = "deployments";
   }
   
-  if (!["configmaps", "daemonsets", "deployments", "egressrules", "horizontalpodautoscalers", "jobs", "secrets", "services", "statefulsets"].includes(reqdata.type)) {
-    return callback(422, 'Type must be one of: "configmaps", "daemonsets", "deployments", "egressrules", "horizontalpodautoscalers", "jobs", "secrets", "services", "statefulsets"');
+  if (!["configmaps", "daemonsets", "deployments", "egressrules", "horizontalpodautoscalers", "ingresses", "jobs", "secrets", "services", "statefulsets"].includes(reqdata.type)) {
+    return callback(422, 'Type must be one of: "configmaps", "daemonsets", "deployments", "egressrules", "horizontalpodautoscalers", "ingresses", "jobs", "secrets", "services", "statefulsets"');
   }
   
   if (reqdata.containers == null || reqdata.containers == "") {
