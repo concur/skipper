@@ -301,7 +301,7 @@ exports.validateUpdateIndex = function (reqdata, callback) {
   //for each container
   for (var i = 0; i < reqdata.containers.length; i++) {
     if (reqdata.containers[i].name == "" ||
-    reqdata.containers[i].image == "" || !_.isNumber(reqdata.containers[i].port)) {
+    reqdata.containers[i].image == "" || !(_.isNumber(reqdata.containers[i].port) || _.isArray(reqdata.containers[i].port))) {
       return callback(422, 'Missing required field in containers array: name, image, port');
     }
   }
