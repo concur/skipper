@@ -592,8 +592,6 @@ definitions:
       - "port"
     properties:
       port:
-        type: "integer"
-        format: "int32"
         default: 3000
       periodSeconds:
         type: "integer"
