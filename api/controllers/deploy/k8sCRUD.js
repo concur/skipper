@@ -147,6 +147,11 @@ const serviceChanged = function (oldSvc, newSvc) {
     console.log("annotations have different values", newSvc.metadata.name);
   }
   
+  if (!svcChanged && !_.isEqual(_.sortBy(newSvc.spec.selector), _.sortBy(oldSvc.spec.selector))) {
+    svcChanged = true;
+    console.log("selectors have different values", newSvc.metadata.name);
+  }
+  
   return svcChanged;
 }
 
