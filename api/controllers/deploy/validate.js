@@ -96,9 +96,7 @@ exports.validateDestroy = function (reqdata, callback) {
 
   //set group selector if it exists
   if (reqdata.targetGroup != "" && reqdata.targetGroup != null) {
-    reqdata.deployment = reqdata.name + "-" + reqdata.targetGroup;
-  } else {
-    reqdata.deployment = reqdata.name;
+    reqdata.name = reqdata.name + "-" + reqdata.targetGroup;
   }
   
   setRequestKey(reqdata);
