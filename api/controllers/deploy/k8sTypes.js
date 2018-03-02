@@ -31,6 +31,15 @@ exports.getKind = function(type) {
         "containerSpec": true
       };
       break;
+    case 'destinationpolicies':
+      kind = {
+        "apiVersion": "config.istio.io/v1alpha2",
+        "kind": "DestinationPolicy",
+        "prefix": "apis",
+        "containerSpec": false,
+        "namespaced": true
+      };
+      break;
     case 'horizontalpodautoscalers':
       kind = {
         "apiVersion": "autoscaling/v1",
@@ -160,6 +169,9 @@ exports.setrcjson = function (reqdata) {
           }
         }
       };
+      break;
+    case 'destinationpolicies':
+      //nothing to do yet
       break;
     case 'jobs':
       tmpJson.spec = {
