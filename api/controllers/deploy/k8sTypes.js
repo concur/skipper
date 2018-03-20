@@ -57,6 +57,14 @@ exports.getKind = function(type) {
         "containerSpec": true
       };
       break;
+    case 'namespaces':
+      kind = {
+        "apiVersion": "v1",
+        "kind": "Namespace",
+        "prefix": "api",
+        "containerSpec": false
+      };
+      break;
     case 'secrets':
       kind = {
         "apiVersion": "v1",

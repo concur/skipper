@@ -21,6 +21,10 @@ exports.applyActionForLocation = function (reqdata, action, configloc, callback)
     kubercjsonreplaced = {};
   }
   
+  if (typeof config.customLocationProcessingHandler === 'function') {
+    config.customLocationProcessingHandler(action, reqdata, configLocation, kubercjsonreplaced);
+  }
+  
   var kubeapiParams = {
     host:  splitURL[1],
     protocol: splitURL[0],
@@ -33,10 +37,6 @@ exports.applyActionForLocation = function (reqdata, action, configloc, callback)
     timeout: 20000,
     cluster: configLocation
   };
-  
-  if (typeof config.customLocationProcessingHandler === 'function') {
-    config.customLocationProcessingHandler(action, reqdata, configLocation, kubercjsonreplaced);
-  }
   
   if (action == "remove") {
     //remove only deletes service records to prevent external access
