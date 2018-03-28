@@ -235,7 +235,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
         "valueFrom": {
           configMapKeyRef: {
             name: containerReqdata.configMapEnv[envs].configMap,
-            key: exports.replaceAll(containerReqdata.configMapEnv[envs].key, "_", ".")
+            key: containerReqdata.configMapEnv[envs].key
           }
         }
       });
