@@ -36,7 +36,8 @@ exports.addENV = function (array, value) {
   }
 }
 
-exports.handleContainerParams = function (healthCheck, containerReqdata, kubercjson) {
+exports.handleContainerParams = function (healthCheck, containerReqdata, kubercjson, type) {
+  //type == "containers" || initContainers
   //containerReqdata = reqdata.containers[i]
 
   var containerjson =
@@ -67,7 +68,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
   }
 
   //handle multiple ports for the container if it's an array
-  if (containerReqdata.port.constructor === Array) {
+  if (_.isArray(containerReqdata.port)) {
     for (var ports = 0; ports < containerReqdata.port.length; ports++) {
       containerjson.ports.push({"containerPort": containerReqdata.port[ports]});
     }
@@ -82,73 +83,75 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
   }
 
   //reqdata.healthCheck = "http" || "tcp" || "none"
-  if (healthCheck == "http") {
-    containerjson.livenessProbe = {
-        "httpGet": {
-          "path": config.defaultHealthCheck,
-          "port": containerReqdata.port
-        },
-        "initialDelaySeconds": 120,
-        "timeoutSeconds": 1
-      };
-    containerjson.readinessProbe = {
-        "httpGet": {
-          "path": config.defaultHealthCheck,
-          "port": containerReqdata.port
-        },
-        "initialDelaySeconds": 5,
-        "timeoutSeconds": 1
-      };
-  }
-  if (healthCheck == "tcp") {
-    containerjson.livenessProbe = {
-        "tcpSocket": {
-          "port": containerReqdata.port
-        },
-        "initialDelaySeconds": 120,
-        "timeoutSeconds": 1
-      };
-    containerjson.readinessProbe = {
-        "tcpSocket": {
-          "port": containerReqdata.port
-        },
-        "initialDelaySeconds": 5,
-        "timeoutSeconds": 1
-      };
-  }
+  if (type == "containers") {
+    if (healthCheck == "http") {
+      containerjson.livenessProbe = {
+          "httpGet": {
+            "path": config.defaultHealthCheck,
+            "port": containerReqdata.port
+          },
+          "initialDelaySeconds": 120,
+          "timeoutSeconds": 1
+        };
+      containerjson.readinessProbe = {
+          "httpGet": {
+            "path": config.defaultHealthCheck,
+            "port": containerReqdata.port
+          },
+          "initialDelaySeconds": 5,
+          "timeoutSeconds": 1
+        };
+    }
+    if (healthCheck == "tcp") {
+      containerjson.livenessProbe = {
+          "tcpSocket": {
+            "port": containerReqdata.port
+          },
+          "initialDelaySeconds": 120,
+          "timeoutSeconds": 1
+        };
+      containerjson.readinessProbe = {
+          "tcpSocket": {
+            "port": containerReqdata.port
+          },
+          "initialDelaySeconds": 5,
+          "timeoutSeconds": 1
+        };
+    }
 
-  if (containerReqdata.periodSeconds != null && containerReqdata.periodSeconds != "" && _.isNumber(containerReqdata.periodSeconds)) {
-    //update both
-    containerjson.readinessProbe.periodSeconds = containerReqdata.periodSeconds;
-    containerjson.livenessProbe.periodSeconds = containerReqdata.periodSeconds;
-  }
+    if (containerReqdata.periodSeconds != null && containerReqdata.periodSeconds != "" && _.isNumber(containerReqdata.periodSeconds)) {
+      //update both
+      containerjson.readinessProbe.periodSeconds = containerReqdata.periodSeconds;
+      containerjson.livenessProbe.periodSeconds = containerReqdata.periodSeconds;
+    }
 
-  if (containerReqdata.readinessPeriodSeconds != null && containerReqdata.readinessPeriodSeconds != "" && _.isNumber(containerReqdata.readinessPeriodSeconds)) {
-    containerjson.readinessProbe.periodSeconds = containerReqdata.readinessPeriodSeconds;
-  }
+    if (containerReqdata.readinessPeriodSeconds != null && containerReqdata.readinessPeriodSeconds != "" && _.isNumber(containerReqdata.readinessPeriodSeconds)) {
+      containerjson.readinessProbe.periodSeconds = containerReqdata.readinessPeriodSeconds;
+    }
 
-  if (containerReqdata.livenessPeriodSeconds != null && containerReqdata.livenessPeriodSeconds != "" && _.isNumber(containerReqdata.livenessPeriodSeconds)) {
-    containerjson.livenessProbe.periodSeconds = containerReqdata.livenessPeriodSeconds;
-  }
+    if (containerReqdata.livenessPeriodSeconds != null && containerReqdata.livenessPeriodSeconds != "" && _.isNumber(containerReqdata.livenessPeriodSeconds)) {
+      containerjson.livenessProbe.periodSeconds = containerReqdata.livenessPeriodSeconds;
+    }
 
-  if (containerReqdata.failureThreshold != null && containerReqdata.failureThreshold != "" && _.isNumber(containerReqdata.failureThreshold)) {
-    //update both
-    containerjson.readinessProbe.failureThreshold = containerReqdata.failureThreshold;
-    containerjson.livenessProbe.failureThreshold = containerReqdata.failureThreshold;
-  }
+    if (containerReqdata.failureThreshold != null && containerReqdata.failureThreshold != "" && _.isNumber(containerReqdata.failureThreshold)) {
+      //update both
+      containerjson.readinessProbe.failureThreshold = containerReqdata.failureThreshold;
+      containerjson.livenessProbe.failureThreshold = containerReqdata.failureThreshold;
+    }
 
-  if (containerReqdata.readinessFailureThreshold != null && containerReqdata.readinessFailureThreshold != "" && _.isNumber(containerReqdata.readinessFailureThreshold)) {
-    containerjson.readinessProbe.FailureThreshold = containerReqdata.readinessFailureThreshold;
-  }
+    if (containerReqdata.readinessFailureThreshold != null && containerReqdata.readinessFailureThreshold != "" && _.isNumber(containerReqdata.readinessFailureThreshold)) {
+      containerjson.readinessProbe.FailureThreshold = containerReqdata.readinessFailureThreshold;
+    }
 
-  if (containerReqdata.livenessFailureThreshold != null && containerReqdata.livenessFailureThreshold != "" && _.isNumber(containerReqdata.livenessFailureThreshold)) {
-    containerjson.livenessProbe.FailureThreshold = containerReqdata.livenessFailureThreshold;
-  }
+    if (containerReqdata.livenessFailureThreshold != null && containerReqdata.livenessFailureThreshold != "" && _.isNumber(containerReqdata.livenessFailureThreshold)) {
+      containerjson.livenessProbe.FailureThreshold = containerReqdata.livenessFailureThreshold;
+    }
 
-  if (containerReqdata.timeoutSeconds != null && containerReqdata.timeoutSeconds != "" && _.isNumber(containerReqdata.timeoutSeconds)) {
-    //update both
-    containerjson.readinessProbe.timeoutSeconds = containerReqdata.timeoutSeconds;
-    containerjson.livenessProbe.timeoutSeconds = containerReqdata.timeoutSeconds;
+    if (containerReqdata.timeoutSeconds != null && containerReqdata.timeoutSeconds != "" && _.isNumber(containerReqdata.timeoutSeconds)) {
+      //update both
+      containerjson.readinessProbe.timeoutSeconds = containerReqdata.timeoutSeconds;
+      containerjson.livenessProbe.timeoutSeconds = containerReqdata.timeoutSeconds;
+    }
   }
 
   //handle secret volumes
@@ -258,11 +261,11 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
   }
 
   //add basic required template
-  _.merge(kubercjson, {"spec":{"template":{"spec":{containers:[]}}}});
+  _.merge(kubercjson, {"spec":{"template":{"spec":{containers:[], initContainers:[]}}}});
 
   //add container specific json override to kubercjson
   _.merge(containerjson, containerReqdata.k8s);
 
-  kubercjson.spec.template.spec.containers.push(containerjson);
+  kubercjson.spec.template.spec[type].push(containerjson);
 
 };

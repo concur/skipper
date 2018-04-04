@@ -235,6 +235,33 @@ describe('deploy tests', () => {
         done();
       });
     });
+    it('it should create a deployment with initContainers', (done) => {
+      chai.request(server)
+      .post('/api/v1/deployment')
+      .set("Content-Type", "application/json")
+      .send({"correlationid": "deployment3", "containers":[{"name":"mydeployment-" + deployNum, "image":"treeder/tiny-node:latest", "port": 8080 }], "initContainers":[{"image":"lachlanevenson/k8s-kubectl:latest", "command": ["sh", "-c", "kubectl get pods"], "port": 2000, "mincpu": "300m", "maxcpu": "500m", "minmem": "100Mi", "maxmem": "200Mi"}], "name":"mydeployment", "targetPort":3001, "user": config.test.kubenamespace, "token": config.test.kubetoken, "namespace": config.test.kubenamespace, "locations": [{"name": config.test.kubelocation}], "clusters": 1, "annotations": {"deploynum": deployNum.toString()}, "loadBalanced":true, "healthCheck":"http", "replicas":1})
+      .end((err, res) => {
+        res.status.should.be.equal(200);
+        res.body.should.be.an.instanceOf(Object).and.have.properties(['locations', 'annotations', 'kubesvcjson', 'kubercjson', 'deployClusters', 'endpoints', 'result']);
+        res.body.err.should.equal(false);
+        res.body.locations.should.be.instanceof(Array);
+        res.body.annotations.should.be.instanceof(Object).and.have.property('deploynum', deployNum.toString());
+        res.body.kubercjson.metadata.annotations.should.be.an.instanceOf(Object).and.have.property('deploynum', deployNum.toString());
+        res.body.kubercjson.spec.template.spec.containers[0].should.have.properties(['livenessProbe', 'readinessProbe', 'ports', 'image', 'name']);
+        res.body.kubercjson.spec.template.spec.initContainers[0].should.have.properties(['env', 'ports', 'image', 'name', 'command']);
+        res.body.kubercjson.spec.template.spec.initContainers[0].command.should.eql(["sh", "-c", "kubectl get pods"]);
+        res.body.kubercjson.spec.template.spec.initContainers[0].resources.requests.cpu.should.equal('300m');
+        res.body.kubercjson.spec.template.spec.initContainers[0].resources.requests.memory.should.equal('100Mi');
+        res.body.kubercjson.spec.template.spec.initContainers[0].resources.limits.cpu.should.equal('500m');
+        res.body.kubercjson.spec.template.spec.initContainers[0].resources.limits.memory.should.equal('200Mi');
+        res.body.token.should.equal('REDACTED');
+        res.body.endpoints.should.be.an.instanceOf(Object).and.have.properties([config.test.kubelocation]);
+        res.body.endpoints[config.test.kubelocation].should.have.properties(['latest','this','url']);
+        res.body.message.should.equal('done processing.');
+        res.body.result.message.should.equal('completed deployment API calls, check deployClusters.');
+        done();
+      });
+    });
     it('it should create a deployment all clusters - example', (done) => {
       chai.request(server)
       .post('/api/v1/deployment')

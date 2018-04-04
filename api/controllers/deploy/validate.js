@@ -25,6 +25,7 @@ exports.cleanupReqdata = function (reqdata) {
   if (!reqdata.manageServices) {
     delete reqdata.kubesvcjson;
     delete reqdata.containers;
+    delete reqdata.initContainers;
     delete reqdata.serviceType;
   }
   
@@ -148,6 +149,7 @@ exports.validateUpdateIndex = function (reqdata, callback) {
   // replicas: int - number of copys of your container spec you'd like to run -- defaults to 2
   // clusters: int - number of k8sclustes to run your service against -- defaults to all available in the location
   // *containers: {*name: string, *image: string, *port: int, env {name: string, value: string}} -- required
+  // *initContainers: {*name: string, *image: string, *port: int, env {name: string, value: string}} -- optional
   // *user: string - username for token auth to k8s -- required for some clusters
   // *token: string - token for auth to k8s -- required for some clusters
   // namespace: string - defaults to the user, available for override
@@ -298,9 +300,23 @@ exports.validateUpdateIndex = function (reqdata, callback) {
   
   //for each container
   for (var i = 0; i < reqdata.containers.length; i++) {
-    if (reqdata.containers[i].name == "" ||
-    reqdata.containers[i].image == "" || !(_.isNumber(reqdata.containers[i].port) || _.isArray(reqdata.containers[i].port))) {
-      return callback(422, 'Missing required field in containers array: name, image, port');
+    if (reqdata.containers[i].image == "" || !(_.isNumber(reqdata.containers[i].port) || _.isArray(reqdata.containers[i].port))) {
+      return callback(422, 'Missing required field in containers array: image, port');
+    }
+    if (reqdata.containers[i].name == "" || reqdata.containers[i].name == null) {
+      reqdata.containers[i].name = reqdata.name + "-" + _.random(999).toString();
+    }
+  }
+  
+  //for each initContainer
+  if (_.isArray(reqdata.initContainers)) {
+    for (var i = 0; i < reqdata.initContainers.length; i++) {
+      if (reqdata.initContainers[i].image == "" || !(_.isNumber(reqdata.initContainers[i].port) || _.isArray(reqdata.initContainers[i].port))) {
+        return callback(422, 'Missing required field in initContainers array: image, port');
+      }
+      if (reqdata.initContainers[i].name == "" || reqdata.initContainers[i].name == null) {
+        reqdata.initContainers[i].name = reqdata.name + "-" + _.random(999).toString();
+      }
     }
   }
   
