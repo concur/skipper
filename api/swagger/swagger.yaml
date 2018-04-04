@@ -587,7 +587,6 @@ definitions:
   containerParams:
     type: "object"
     required:
-      - "name"
       - "image"
       - "port"
     properties:
