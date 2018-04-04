@@ -51,7 +51,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
         requests: {},
         limits: {}
       }
-    };
+    }, probePort = 0;
 
   //handle min/max cpu/mem
   if (containerReqdata.mincpu != null && containerReqdata.mincpu != "") {
@@ -69,10 +69,12 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
 
   //handle multiple ports for the container if it's an array
   if (_.isArray(containerReqdata.port)) {
+    probePort = containerReqdata.port[0];
     for (var ports = 0; ports < containerReqdata.port.length; ports++) {
       containerjson.ports.push({"containerPort": containerReqdata.port[ports]});
     }
   } else {
+    probePort = containerReqdata.port;
     containerjson.ports.push({"containerPort": containerReqdata.port});
   }
 
@@ -88,7 +90,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
       containerjson.livenessProbe = {
           "httpGet": {
             "path": config.defaultHealthCheck,
-            "port": containerReqdata.port
+            "port": probePort
           },
           "initialDelaySeconds": 120,
           "timeoutSeconds": 1
@@ -96,7 +98,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
       containerjson.readinessProbe = {
           "httpGet": {
             "path": config.defaultHealthCheck,
-            "port": containerReqdata.port
+            "port": probePort
           },
           "initialDelaySeconds": 5,
           "timeoutSeconds": 1
@@ -105,14 +107,14 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
     if (healthCheck == "tcp") {
       containerjson.livenessProbe = {
           "tcpSocket": {
-            "port": containerReqdata.port
+            "port": probePort
           },
           "initialDelaySeconds": 120,
           "timeoutSeconds": 1
         };
       containerjson.readinessProbe = {
           "tcpSocket": {
-            "port": containerReqdata.port
+            "port": probePort
           },
           "initialDelaySeconds": 5,
           "timeoutSeconds": 1
