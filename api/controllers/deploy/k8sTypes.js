@@ -263,7 +263,10 @@ exports.setrcjson = function (reqdata) {
   //for each container
   if (reqdata.kind.containerSpec) {
     for (var i = 0; i < reqdata.containers.length; i++) {
-      k8sHelper.handleContainerParams(reqdata.healthCheck, reqdata.containers[i], kubeObjJson);
+      k8sHelper.handleContainerParams(reqdata.healthCheck, reqdata.containers[i], kubeObjJson, "containers");
+    }
+    for (var i = 0; _.isArray(reqdata.initContainers) && i < reqdata.initContainers.length; i++) {
+      k8sHelper.handleContainerParams(reqdata.healthCheck, reqdata.initContainers[i], kubeObjJson, "initContainers");
     }
   }
 
