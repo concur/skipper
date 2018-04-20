@@ -131,11 +131,6 @@ const serviceChanged = function (oldSvc, newSvc) {
     svcChanged = true;
     console.log("service port changed", newSvc.metadata.name);
   }
-  
-  if (oldSvc.metadata.hasOwnProperty("annotations") != newSvc.metadata.hasOwnProperty("annotations")) {
-    svcChanged = true;
-    console.log("old || new svc does not contain annotations", newSvc.metadata.name);
-  }
 
   if (!svcChanged && oldSvc.metadata.hasOwnProperty("annotations") && newSvc.metadata.annotations.length != oldSvc.metadata.annotations.length) {
     svcChanged = true;
