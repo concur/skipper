@@ -24,7 +24,7 @@
 
 'use strict';
 
-var _ = require('lodash-compat');
+var _ = require('lodash');
 var async = require('async');
 var bp = require('body-parser');
 var cHelpers = require('../lib/helpers');
@@ -198,6 +198,7 @@ var processOperationParameters = function (swaggerMetadata, pathKeys, pathMatch,
 
     _.each(parameters, function (parameterOrMetadata, index) {
       var parameter = version === '1.2' ? parameterOrMetadata : parameterOrMetadata.schema;
+      var pLocation = version === '1.2' ? parameter.paramType : parameter.in;
       var pType = mHelpers.getParameterType(parameter);
       var oVal;
       var value;
@@ -207,7 +208,7 @@ var processOperationParameters = function (swaggerMetadata, pathKeys, pathMatch,
 
       // Located here to make the debug output pretty
       oVal = mHelpers.getParameterValue(version, parameter, pathKeys, pathMatch, req, debug);
-      value = mHelpers.convertValue(oVal, _.isUndefined(parameter.schema) ? parameter : parameter.schema, pType);
+      value = mHelpers.convertValue(oVal, _.isUndefined(parameter.schema) ? parameter : parameter.schema, pType, pLocation);
 
       debug('      Value: %s', value);
 

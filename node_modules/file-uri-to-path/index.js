@@ -26,7 +26,7 @@ function fileUriToPath (uri) {
     throw new TypeError('must pass in a file:// URI to convert to a file path');
   }
 
-  var rest = unescape(uri.substring(7));
+  var rest = decodeURI(uri.substring(7));
   var firstSlash = rest.indexOf('/');
   var host = rest.substring(0, firstSlash);
   var path = rest.substring(firstSlash + 1);
