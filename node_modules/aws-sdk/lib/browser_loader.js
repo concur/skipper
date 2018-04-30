@@ -1,7 +1,7 @@
 var util = require('./util');
 
 // browser specific modules
-util.crypto.lib = require('crypto-browserify');
+util.crypto.lib = require('./browserCryptoLib');
 util.Buffer = require('buffer/').Buffer;
 util.url = require('url/');
 util.querystring = require('querystring/');

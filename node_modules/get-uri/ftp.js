@@ -27,6 +27,7 @@ function get (parsed, opts, fn) {
   var filepath = parsed.pathname;
   var lastModified;
 
+  client.once('error', onerror);
   client.once('ready', onready);
   client.once('greeting', ongreeting);
 
