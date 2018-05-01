@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var k8sHelper = require('./k8sHelper');
+var config = require('../../../default/config');
 
 exports.getKind = function(reqdata) {
   var ktype = this.types(reqdata);
@@ -285,6 +286,10 @@ exports.types = function (reqdata) {
     "namespaced": true,
     "spec": {}
   };
+
+  if (typeof config.customTypes === 'function') {
+     _.merge(ktype, config.customTypes(reqdata));
+  }
 
   return ktype;
 }
