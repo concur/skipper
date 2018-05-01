@@ -5,7 +5,10 @@ var k8sHelper = require('./k8sHelper');
 
 exports.getKind = function(reqdata) {
   var ktype = this.types(reqdata);
-  return ktype[reqdata.type].kind;
+  if (ktype[reqdata.type] == null) {
+    ktype[reqdata.type] = {};
+  }
+  return ktype[reqdata.type];
 };
 
 exports.setrcjson = function (reqdata) {
@@ -17,12 +20,10 @@ exports.setrcjson = function (reqdata) {
             "namespace": reqdata.namespace
           }
         };
-  var ktype = this.types(reqdata);
-  var tmpJson = JSON.parse(JSON.stringify(ktype[reqdata.type].kind));
+  var kind = this.getKind(reqdata);
+  var tmpJson = JSON.parse(JSON.stringify(kind));
 
   console.log(reqdata.key, "Type:", reqdata.type);
-
-  tmpJson.spec = ktype[reqdata.type].spec;
 
   if (_.has(reqdata, 'containers[0]')) {
     //set version tag
@@ -51,7 +52,7 @@ exports.setrcjson = function (reqdata) {
   _.merge(kubeObjJson, tmpJson);
   
   //get kind
-  reqdata.kind = JSON.parse(JSON.stringify(ktype[reqdata.type].kind));
+  reqdata.kind = JSON.parse(JSON.stringify(kind));
 
   //for each container
   if (reqdata.kind.containerSpec) {
@@ -106,22 +107,18 @@ exports.types = function (reqdata) {
   }
   var ktype = [];
   ktype.configmaps = {
-    "kind": {
-      "apiVersion": "v1",
-      "kind": "ConfigMap",
-      "prefix": "api",
-      "containerSpec": false
-    },
+    "apiVersion": "v1",
+    "kind": "ConfigMap",
+    "prefix": "api",
+    "containerSpec": false,
     "spec": {}
   };
 
   ktype.deployments = {
-    "kind": {
-      "apiVersion": "extensions/v1beta1",
-      "kind": "Deployment",
-      "prefix": "apis",
-      "containerSpec": true
-    },
+    "apiVersion": "extensions/v1beta1",
+    "kind": "Deployment",
+    "prefix": "apis",
+    "containerSpec": true,
     "spec": {
       "replicas": 2,
       "strategy": {
@@ -153,12 +150,10 @@ exports.types = function (reqdata) {
   };
 
   ktype.daemonsets = {
-    "kind": {
-      "apiVersion": "extensions/v1beta1",
-      "kind": "DaemonSet",
-      "prefix": "apis",
-      "containerSpec": true
-    },
+    "apiVersion": "extensions/v1beta1",
+    "kind": "DaemonSet",
+    "prefix": "apis",
+    "containerSpec": true,
     "spec": {
       "replicas": 2,
       "template": {
@@ -178,24 +173,20 @@ exports.types = function (reqdata) {
   };
 
   ktype.destinationpolicies = {
-    "kind": {
-      "apiVersion": "config.istio.io/v1alpha2",
-      "kind": "DestinationPolicy",
-      "prefix": "apis",
-      "containerSpec": false,
-      "namespaced": true
-    },
+    "apiVersion": "config.istio.io/v1alpha2",
+    "kind": "DestinationPolicy",
+    "prefix": "apis",
+    "containerSpec": false,
+    "namespaced": true,
     "spec": {}
   };
 
   ktype.horizontalpodautoscalers = {
-    "kind": {
-      "apiVersion": "autoscaling/v1",
-      "kind": "HorizontalPodAutoscaler",
-      "prefix": "apis",
-      "containerSpec": false,
-      "namespaced": true
-    },
+    "apiVersion": "autoscaling/v1",
+    "kind": "HorizontalPodAutoscaler",
+    "prefix": "apis",
+    "containerSpec": false,
+    "namespaced": true,
     "spec": {
       "scaleTargetRef": {
         "apiVersion": "extensions/v1beta1",
@@ -218,12 +209,10 @@ exports.types = function (reqdata) {
   };
 
   ktype.jobs = {
-    "kind": {
-      "apiVersion": "extensions/v1beta1",
-      "kind": "Job",
-      "prefix": "apis",
-      "containerSpec": true
-    },
+    "apiVersion": "extensions/v1beta1",
+    "kind": "Job",
+    "prefix": "apis",
+    "containerSpec": true,
     "spec": {
       "template": {
         "metadata": {
@@ -243,53 +232,43 @@ exports.types = function (reqdata) {
   };
 
   ktype.namespaces = {
-    "kind": {
-      "apiVersion": "v1",
-      "kind": "Namespace",
-      "prefix": "api",
-      "containerSpec": false
-    },
+    "apiVersion": "v1",
+    "kind": "Namespace",
+    "prefix": "api",
+    "containerSpec": false,
     "spec": {}
   };
 
   ktype.secrets = {
-    "kind": {
-      "apiVersion": "v1",
-      "kind": "Secret",
-      "prefix": "api",
-      "containerSpec": false
-    },
+    "apiVersion": "v1",
+    "kind": "Secret",
+    "prefix": "api",
+    "containerSpec": false,
     "spec": {}
   };
 
   ktype.services = {
-    "kind": {
-      "apiVersion": "v1",
-      "kind": "Service",
-      "prefix": "api",
-      "containerSpec": false
-    },
+    "apiVersion": "v1",
+    "kind": "Service",
+    "prefix": "api",
+    "containerSpec": false,
     "spec": {}
   };
 
   ktype.ingresses = {
-    "kind": {
-      "apiVersion": "extensions/v1beta1",
-      "kind": "Ingress",
-      "prefix": "apis",
-      "containerSpec": false
-    },
+    "apiVersion": "extensions/v1beta1",
+    "kind": "Ingress",
+    "prefix": "apis",
+    "containerSpec": false,
     "spec": {}
   };
 
   ktype.egressrules = {
-    "kind": {
-      "apiVersion": "config.istio.io/v1alpha2",
-      "kind": "EgressRule",
-      "prefix": "apis",
-      "containerSpec": false,
-      "namespaced": true
-    },
+    "apiVersion": "config.istio.io/v1alpha2",
+    "kind": "EgressRule",
+    "prefix": "apis",
+    "containerSpec": false,
+    "namespaced": true,
     "spec": {
       "destination": {
         "service": _.get(reqdata, 'egress.destination', reqdata.name)
@@ -299,13 +278,11 @@ exports.types = function (reqdata) {
   };
 
   ktype.routerules = {
-    "kind": {
-      "apiVersion": "config.istio.io/v1alpha2",
-      "kind": "RouteRule",
-      "prefix": "apis",
-      "containerSpec": false,
-      "namespaced": true
-    },
+    "apiVersion": "config.istio.io/v1alpha2",
+    "kind": "RouteRule",
+    "prefix": "apis",
+    "containerSpec": false,
+    "namespaced": true,
     "spec": {}
   };
 
