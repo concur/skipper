@@ -86,7 +86,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
 
   //reqdata.healthCheck = "http" || "tcp" || "none"
   if (type == "containers") {
-    if (healthCheck == "http") {
+    if (healthCheck == "http" || healthCheck == "https") {
       containerjson.livenessProbe = {
           "httpGet": {
             "path": config.defaultHealthCheck,
@@ -103,6 +103,10 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
           "initialDelaySeconds": 5,
           "timeoutSeconds": 1
         };
+      if (healthCheck == "https") {
+        containerjson.livenessProbe.httpGet.scheme = "HTTPS";
+        containerjson.readinessProbe.httpGet.scheme = "HTTPS";
+      }
     }
     if (healthCheck == "tcp") {
       containerjson.livenessProbe = {
