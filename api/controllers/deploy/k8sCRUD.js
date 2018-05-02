@@ -151,7 +151,7 @@ const serviceChanged = function (oldSvc, newSvc) {
 }
 
 const ensureObjectCU = function (Spec, apiConnectParams, objType, reqdata, callback) {
-  var kind = k8sHelper.k8sTypes.getKind(objType), ConnectParams = JSON.parse(JSON.stringify(apiConnectParams)), ensureKubeAPI = {};
+  var kind = k8sHelper.k8sTypes.getKind(reqdata), ConnectParams = JSON.parse(JSON.stringify(apiConnectParams)), ensureKubeAPI = {};
   ConnectParams.version = kind.apiVersion;
   ensureKubeAPI = new k8s(ConnectParams);
   ensureKubeAPI.newObj = ensureKubeAPI.createCollection(objType, null, null, { apiPrefix : kind.prefix, namespaced: kind.namespaced });
@@ -161,19 +161,25 @@ const ensureObjectCU = function (Spec, apiConnectParams, objType, reqdata, callb
       //create
       ensureKubeAPI.newObj.create(Spec, function (err, data) {
         if (err) {
-          return callback(err, {"message": "Error creating " + objType + ": " + Spec.metadata.name + " " + err});
+          return callback(err, {"message": "Error creating " + objType + ": " + Spec.metadata.name + " " + JSON.stringify(err)});
         } else {
           return callback(null, {"message": objType + " created: " + Spec.metadata.name});
         }
       });
     } else if (err && err.statusCode != 404) {
-      return callback(err, {"message": "Error checking status " + objType + ": " + Spec.metadata.name + " " + err});
+      return callback(err, {"message": "Error checking status " + objType + ": " + Spec.metadata.name + " " + JSON.stringify(err)});
     } else {
       //update
       Spec.metadata.resourceVersion = data.metadata.resourceVersion;
       ensureKubeAPI.newObj.update(Spec.metadata.name, Spec, function (err, data2) {
-        if (err) {
-          return callback(err, {"message": "Error updating " + objType + ": " + Spec.metadata.name + " " + err});
+        if (err && err.statusCode == 409) {
+          setTimeout(function(){
+            return ensureObjectCU(Spec, apiConnectParams, objType, reqdata, function (e,d) {
+              return callback(e, d);
+            });
+          }, 1000);
+        } else if (err) {
+          return callback(err, {"message": "Error updating " + objType + ": " + Spec.metadata.name + " " + JSON.stringify(err)});
         } else {
           return callback(null, {"message": objType + " updated: " + Spec.metadata.name});
         }
@@ -183,7 +189,7 @@ const ensureObjectCU = function (Spec, apiConnectParams, objType, reqdata, callb
 }
 
 const ensureObjectPatchCU = function (Spec, apiConnectParams, objType, reqdata, callback) {
-  var kind = k8sHelper.k8sTypes.getKind(objType), ConnectParams = JSON.parse(JSON.stringify(apiConnectParams)), ensureKubeAPI = {};
+  var kind = k8sHelper.k8sTypes.getKind(reqdata), ConnectParams = JSON.parse(JSON.stringify(apiConnectParams)), ensureKubeAPI = {};
   ConnectParams.version = kind.apiVersion;
   ensureKubeAPI = new k8s(ConnectParams);
   ensureKubeAPI.newObj = ensureKubeAPI.createCollection(objType, null, null, { apiPrefix : kind.prefix, namespaced: kind.namespaced });
@@ -193,19 +199,19 @@ const ensureObjectPatchCU = function (Spec, apiConnectParams, objType, reqdata, 
       //create
       ensureKubeAPI.newObj.create(Spec, function (err, data) {
         if (err) {
-          return callback(err, {"message": "Error creating " + objType + ": " + Spec.metadata.name + " " + err});
+          return callback(err, {"message": "Error creating " + objType + ": " + Spec.metadata.name + " " + JSON.stringify(err)});
         } else {
           return callback(null, {"message": objType + " created: " + Spec.metadata.name});
         }
       });
     } else if (err && err.statusCode != 404) {
-      return callback(err, {"message": "Error checking status " + objType + ": " + Spec.metadata.name + " " + err});
+      return callback(err, {"message": "Error checking status " + objType + ": " + Spec.metadata.name + " " + JSON.stringify(err)});
     } else {
       //update
       Spec.metadata.resourceVersion = data.metadata.resourceVersion;
       ensureKubeAPI.newObj.patch(Spec.metadata.name, Spec, function (err, data2) {
         if (err) {
-          return callback(err, {"message": "Error patching " + objType + ": " + Spec.metadata.name + " " + err});
+          return callback(err, {"message": "Error patching " + objType + ": " + Spec.metadata.name + " " + JSON.stringify(err)});
         } else {
           return callback(null, {"message": objType + " patched: " + Spec.metadata.name});
         }
@@ -215,7 +221,7 @@ const ensureObjectPatchCU = function (Spec, apiConnectParams, objType, reqdata, 
 }
 
 const ensureServiceCU = function (Spec, apiConnectParams, objType, reqdata, callback) {
-  var kind = k8sHelper.k8sTypes.getKind(objType), ConnectParams = JSON.parse(JSON.stringify(apiConnectParams)), 
+  var kind = k8sHelper.k8sTypes.getKind(reqdata), ConnectParams = JSON.parse(JSON.stringify(apiConnectParams)), 
       ensureKubeAPI = {};
   ConnectParams.version = kind.apiVersion;
   ensureKubeAPI = new k8s(ConnectParams);
@@ -244,6 +250,7 @@ const ensureServiceCU = function (Spec, apiConnectParams, objType, reqdata, call
 
 exports.ensureObject = function (Spec, apiConnectParams, objType, requestStore, callback) {
   var ensureFunc = ensureObjectCU, reqdata = JSON.parse(JSON.stringify(requestStore));
+  reqdata.type = objType;
   if (objType == "services") {
     ensureFunc = ensureServiceCU;
   } else if (_.get(reqdata, 'patch', false) == true) {
@@ -272,6 +279,7 @@ exports.ensureObject = function (Spec, apiConnectParams, objType, requestStore, 
 
 exports.recreateObject = function (Spec, apiConnectParams, objType, requestStore, callback) {
   var reqdata = JSON.parse(JSON.stringify(requestStore));
+  reqdata.type = objType;
   exports.deleteObject(Spec.metadata.name, apiConnectParams, objType, reqdata)
     .then(
     function (deleteData) {
@@ -287,9 +295,9 @@ exports.recreateObject = function (Spec, apiConnectParams, objType, requestStore
 
 exports.deleteObject = function (objectName, apiConnectParams, objType, requestStore) {
   var objectJSON = {}, reqdata = JSON.parse(JSON.stringify(requestStore));
-  
+  reqdata.type = objType;
   return new Promise((resolve, reject) => {
-    var kind = k8sHelper.k8sTypes.getKind(objType), ConnectParams = JSON.parse(JSON.stringify(apiConnectParams)), deleteKubeAPI = {};
+    var kind = k8sHelper.k8sTypes.getKind(reqdata), ConnectParams = JSON.parse(JSON.stringify(apiConnectParams)), deleteKubeAPI = {};
     ConnectParams.version = kind.apiVersion;
     var deleteKubeAPI = new k8s(ConnectParams);
     deleteKubeAPI.delObj = deleteKubeAPI.createCollection(objType, null, null, { apiPrefix : kind.prefix, namespaced: kind.namespaced });
@@ -298,11 +306,11 @@ exports.deleteObject = function (objectName, apiConnectParams, objType, requestS
       deleteKubeAPI.delObj.delete(objectName, function (err, data) {
         if (err && err.statusCode != 404) {
           //something is wrong, bail
-          reject({"message": "Error deleting " + objType + ": " + objectName + " " + err});
+          reject({"message": "Error deleting " + objType + ": " + objectName + " " + JSON.stringify(err)});
         } else {
           deletek8sJSON(objectName, kind, ConnectParams, function (err, data) {
             if (err) {
-              console.log("error deleting k8sJSON:", err);
+              console.log("error deleting k8sJSON:", JSON.stringify(err));
             }
             deleteRequest(reqdata, ConnectParams, function(err, msg) {
               if (err) {
@@ -319,7 +327,7 @@ exports.deleteObject = function (objectName, apiConnectParams, objType, requestS
     deleteKubeAPI.delObj.get(objectName, function (err, data) {
       if (err && err.statusCode != 404) {
         //something is wrong, bail
-        reject({"message": "Error getting " + objType + ": " + objectName + " " + err});
+        reject({"message": "Error getting " + objType + ": " + objectName + " " + JSON.stringify(err)});
       } else if (err && err.statusCode == 404) {
         //already gone, nothing to do here
         resolve({"message": objType + " did not exist: " + objectName});
@@ -336,7 +344,7 @@ exports.deleteObject = function (objectName, apiConnectParams, objType, requestS
                   .then(function (data) {resolve(data); })
                   .catch((err) => { reject(err); });
               } else {
-                reject({"message": "Error updating " + objType + " to 0 replicas: " + objectName + " " + err});
+                reject({"message": "Error updating " + objType + " to 0 replicas: " + objectName + " " + JSON.stringify(err)});
               }
             } else {
               //the timeout here gives k8s time it needs to remove the replicas
@@ -360,7 +368,7 @@ exports.deleteService = function (serviceName, apiConnectParams, callback) {
   
   deleteServiceKubeAPI.services.delete(serviceName, function (err, data) {
     if (err && err.statusCode != 404) {
-      return callback(err, {"message": "Error deleting service: " + serviceName + " " + err});
+      return callback(err, {"message": "Error deleting service: " + serviceName + " " + JSON.stringify(err)});
     } else if (err && err.statusCode == 404) {
       return callback(null, {"message": "Service not found: " + serviceName});
     } else {

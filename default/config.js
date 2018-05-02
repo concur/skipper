@@ -51,6 +51,9 @@ module.exports = {
   // customLocationProcessingHandler is for injecting code during processing of each cluster location
   customLocationProcessingHandler: eval(process.env.customLocationProcessingHandler) || null,
   //example: export customLocationProcessingHandler='(function (action, reqdata, configLocation, kubercjson) { console.log(reqdata, "customLocationProcessingHandler: action:" + action); return; })'
+  // customTypes is for adding kubernetes object types and CRDs
+  //example: export customTypes='(function (reqdata) { var types = []; types.destinationpolicies = {"apiVersion": "config.istio.io/v1alpha2","kind": "DestinationPolicy","prefix": "apis","containerSpec": false,"namespaced": true,"spec": {}}; return types; })'
+  customTypes: eval(process.env.customTypes) || null,
   // customValidateUpdateIndex can inject custom code for object POST requests
   customValidateUpdateIndex: eval(process.env.customValidateUpdateIndex) || null,
   //example export customValidateUpdateIndex='(function (reqdata) { console.log(reqdata.key, "customValidateUpdateIndex:", reqdata.type); return; })'

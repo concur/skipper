@@ -2,114 +2,14 @@
 
 var _ = require('lodash');
 var k8sHelper = require('./k8sHelper');
+var config = require('../../../default/config');
 
-exports.getKind = function(type) {
-  var kind = {};
-  
-  switch (type) {
-    case 'configmaps':
-      kind = {
-        "apiVersion": "v1",
-        "kind": "ConfigMap",
-        "prefix": "api",
-        "containerSpec": false
-      };
-      break;
-    case 'deployments':
-      kind = {
-        "apiVersion": "extensions/v1beta1",
-        "kind": "Deployment",
-        "prefix": "apis",
-        "containerSpec": true
-      };
-      break;
-    case 'daemonsets':
-      kind = {
-        "apiVersion": "extensions/v1beta1",
-        "kind": "DaemonSet",
-        "prefix": "apis",
-        "containerSpec": true
-      };
-      break;
-    case 'destinationpolicies':
-      kind = {
-        "apiVersion": "config.istio.io/v1alpha2",
-        "kind": "DestinationPolicy",
-        "prefix": "apis",
-        "containerSpec": false,
-        "namespaced": true
-      };
-      break;
-    case 'horizontalpodautoscalers':
-      kind = {
-        "apiVersion": "autoscaling/v1",
-        "kind": "HorizontalPodAutoscaler",
-        "prefix": "apis",
-        "containerSpec": false,
-        "namespaced": true
-      };
-      break;
-    case 'jobs':
-      kind = {
-        "apiVersion": "extensions/v1beta1",
-        "kind": "Job",
-        "prefix": "apis",
-        "containerSpec": true
-      };
-      break;
-    case 'namespaces':
-      kind = {
-        "apiVersion": "v1",
-        "kind": "Namespace",
-        "prefix": "api",
-        "containerSpec": false
-      };
-      break;
-    case 'secrets':
-      kind = {
-        "apiVersion": "v1",
-        "kind": "Secret",
-        "prefix": "api",
-        "containerSpec": false
-      };
-      break;
-    case 'services':
-      kind = {
-        "apiVersion": "v1",
-        "kind": "Service",
-        "prefix": "api",
-        "containerSpec": false
-      };
-      break;
-    case 'ingresses':
-      kind = {
-        "apiVersion": "extensions/v1beta1",
-        "kind": "Ingress",
-        "prefix": "apis",
-        "containerSpec": false
-      };
-      break;
-    case 'egressrules':
-      kind = {
-        "apiVersion": "config.istio.io/v1alpha2",
-        "kind": "EgressRule",
-        "prefix": "apis",
-        "containerSpec": false,
-        "namespaced": true
-      };
-      break;
-    case 'routerules':
-      kind = {
-        "apiVersion": "config.istio.io/v1alpha2",
-        "kind": "RouteRule",
-        "prefix": "apis",
-        "containerSpec": false,
-        "namespaced": true
-      };
-      break;
+exports.getKind = function(reqdata) {
+  var ktype = this.types(reqdata);
+  if (ktype[reqdata.type] == null) {
+    ktype[reqdata.type] = {};
   }
-
-  return kind;
+  return ktype[reqdata.type];
 };
 
 exports.setrcjson = function (reqdata) {
@@ -121,116 +21,11 @@ exports.setrcjson = function (reqdata) {
             "namespace": reqdata.namespace
           }
         };
-  
-  var tmpJson = this.getKind(reqdata.type);
-  
+  var kind = this.getKind(reqdata);
+  var tmpJson = JSON.parse(JSON.stringify(kind));
+
   console.log(reqdata.key, "Type:", reqdata.type);
-  
-  switch (reqdata.type) {
-    case 'configmaps':
-      //nothing to do yet
-      break;
-    case 'deployments':
-      tmpJson.spec = {
-        "replicas": 2,
-        "strategy": {
-          "type": "RollingUpdate",
-          "rollingUpdate": {
-            "maxUnavailable": "30%",
-            "maxSurge": "60%"
-            },
-          },
-        "selector": {
-          "matchLabels": {
-            "service": reqdata.name,
-          }
-        },
-        "template": {
-          "metadata": {
-            "labels": {
-              "build": reqdata.build,
-              "service": reqdata.name,
-              "group": "green"
-            },
-            "name": "mytemplate-" + reqdata.name
-          },
-          "spec": {
-            "containers": []
-          }
-        }
-      };
-      break;
-    case 'daemonsets':
-      tmpJson.spec = {
-        "replicas": 2,
-        "template": {
-          "metadata": {
-            "labels": {
-              "build": reqdata.build,
-              "service": reqdata.name,
-              "group": "green"
-            },
-            "name": "mytemplate-" + reqdata.name
-          },
-          "spec": {
-            "containers": []
-          }
-        }
-      };
-      break;
-    case 'destinationpolicies':
-      //nothing to do yet
-      break;
-    case 'jobs':
-      tmpJson.spec = {
-        "template": {
-          "metadata": {
-            "labels": {
-              "build": reqdata.build,
-              "service": reqdata.name,
-              "group": "green"
-            },
-            "name": "mytemplate-" + reqdata.name
-          },
-          "spec": {
-            "restartPolicy": reqdata.restartPolicy || "OnFailure",
-            "containers": []
-          }
-        }
-      };
-    case 'horizontalpodautoscalers':
-      tmpJson.spec = {
-        "scaleTargetRef": {
-          "apiVersion": "extensions/v1beta1",
-          "kind": "Deployment",
-          "name": reqdata.name,
-        },
-        "minReplicas": 1,
-        "maxReplicas": 10,
-        "targetCPUUtilizationPercentage": 50
-//        "metrics": [
-//          {
-//            "type": "Resource",
-//            "resource": {
-//              "name": "cpu",
-//              "targetAverageUtilization": 50
-//            }
-//          }
-//        ]
-      };
-    case 'secrets':
-      //nothing to do yet
-      break;
-    case 'egressrules':
-      tmpJson.spec = {
-        "destination": {
-          "service": _.get(reqdata, 'egress.destination', reqdata.name) 
-        },
-        "ports": _.get(reqdata, 'egress.ports', [{"port": 443, "protocol": "https"}])
-      };
-      break;
-    }
-  
+
   if (_.has(reqdata, 'containers[0]')) {
     //set version tag
     tmpJson.spec.template.metadata.labels.version = reqdata.version;
@@ -258,7 +53,7 @@ exports.setrcjson = function (reqdata) {
   _.merge(kubeObjJson, tmpJson);
   
   //get kind
-  reqdata.kind = exports.getKind(reqdata.type);
+  reqdata.kind = JSON.parse(JSON.stringify(kind));
 
   //for each container
   if (reqdata.kind.containerSpec) {
@@ -304,4 +99,197 @@ exports.setsvcjson = function (reqdata) {
     if (reqdata.targetGroup != "" && reqdata.targetGroup != null) {
       reqdata.kubesvcjson.spec.selector.group = reqdata.targetGroup;
     }
+}
+
+exports.types = function (reqdata) {
+  if (reqdata == null) {
+    console.log("reqdata == null", new Error().stack);
+    return {};
+  }
+  var ktype = [];
+  ktype.configmaps = {
+    "apiVersion": "v1",
+    "kind": "ConfigMap",
+    "prefix": "api",
+    "containerSpec": false,
+    "spec": {}
+  };
+
+  ktype.deployments = {
+    "apiVersion": "extensions/v1beta1",
+    "kind": "Deployment",
+    "prefix": "apis",
+    "containerSpec": true,
+    "spec": {
+      "replicas": 2,
+      "strategy": {
+        "type": "RollingUpdate",
+        "rollingUpdate": {
+          "maxUnavailable": "30%",
+          "maxSurge": "60%"
+          },
+        },
+      "selector": {
+        "matchLabels": {
+          "service": reqdata.name,
+        }
+      },
+      "template": {
+        "metadata": {
+          "labels": {
+            "build": reqdata.build,
+            "service": reqdata.name,
+            "group": "green"
+          },
+          "name": "mytemplate-" + reqdata.name
+        },
+        "spec": {
+          "containers": []
+        }
+      }
+    }
+  };
+
+  ktype.daemonsets = {
+    "apiVersion": "extensions/v1beta1",
+    "kind": "DaemonSet",
+    "prefix": "apis",
+    "containerSpec": true,
+    "spec": {
+      "replicas": 2,
+      "template": {
+        "metadata": {
+          "labels": {
+            "build": reqdata.build,
+            "service": reqdata.name,
+            "group": "green"
+          },
+          "name": "mytemplate-" + reqdata.name
+        },
+        "spec": {
+          "containers": []
+        }
+      }
+    }
+  };
+
+  ktype.destinationpolicies = {
+    "apiVersion": "config.istio.io/v1alpha2",
+    "kind": "DestinationPolicy",
+    "prefix": "apis",
+    "containerSpec": false,
+    "namespaced": true,
+    "spec": {}
+  };
+
+  ktype.horizontalpodautoscalers = {
+    "apiVersion": "autoscaling/v1",
+    "kind": "HorizontalPodAutoscaler",
+    "prefix": "apis",
+    "containerSpec": false,
+    "namespaced": true,
+    "spec": {
+      "scaleTargetRef": {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Deployment",
+        "name": reqdata.name,
+      },
+      "minReplicas": 1,
+      "maxReplicas": 10,
+      "targetCPUUtilizationPercentage": 50
+//        "metrics": [
+//          {
+//            "type": "Resource",
+//            "resource": {
+//              "name": "cpu",
+//              "targetAverageUtilization": 50
+//            }
+//          }
+//        ]
+    }
+  };
+
+  ktype.jobs = {
+    "apiVersion": "extensions/v1beta1",
+    "kind": "Job",
+    "prefix": "apis",
+    "containerSpec": true,
+    "spec": {
+      "template": {
+        "metadata": {
+          "labels": {
+            "build": reqdata.build,
+            "service": reqdata.name,
+            "group": "green"
+          },
+          "name": "mytemplate-" + reqdata.name
+        },
+        "spec": {
+          "restartPolicy": reqdata.restartPolicy || "OnFailure",
+          "containers": []
+        }
+      }
+    }
+  };
+
+  ktype.namespaces = {
+    "apiVersion": "v1",
+    "kind": "Namespace",
+    "prefix": "api",
+    "containerSpec": false,
+    "spec": {}
+  };
+
+  ktype.secrets = {
+    "apiVersion": "v1",
+    "kind": "Secret",
+    "prefix": "api",
+    "containerSpec": false,
+    "spec": {}
+  };
+
+  ktype.services = {
+    "apiVersion": "v1",
+    "kind": "Service",
+    "prefix": "api",
+    "containerSpec": false,
+    "spec": {}
+  };
+
+  ktype.ingresses = {
+    "apiVersion": "extensions/v1beta1",
+    "kind": "Ingress",
+    "prefix": "apis",
+    "containerSpec": false,
+    "spec": {}
+  };
+
+  ktype.egressrules = {
+    "apiVersion": "config.istio.io/v1alpha2",
+    "kind": "EgressRule",
+    "prefix": "apis",
+    "containerSpec": false,
+    "namespaced": true,
+    "spec": {
+      "destination": {
+        "service": _.get(reqdata, 'egress.destination', reqdata.name)
+      },
+      "ports": _.get(reqdata, 'egress.ports', [{"port": 443, "protocol": "https"}])
+    }
+  };
+
+  ktype.routerules = {
+    "apiVersion": "config.istio.io/v1alpha2",
+    "kind": "RouteRule",
+    "prefix": "apis",
+    "containerSpec": false,
+    "namespaced": true,
+    "spec": {}
+  };
+
+  if (typeof config.customTypes === 'function') {
+     _.merge(ktype, config.customTypes(reqdata));
+  }
+
+  return ktype;
 }

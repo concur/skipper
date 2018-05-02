@@ -125,7 +125,7 @@ exports.applyActionForLocation = function (reqdata, action, configloc, callback)
         reqdata.deployClusters.push(data);
         if (reqdata.manageServices) {
           console.log(reqdata.key, "updating service:", reqdata.kubesvcjson.metadata.name, configLocation.context);
-          k8sHelper.k8sCRUD.ensureObject(reqdata.kubesvcjson, kubeapiParams, 'services', null, function (err, data) {
+          k8sHelper.k8sCRUD.ensureObject(reqdata.kubesvcjson, kubeapiParams, 'services', reqdata, function (err, data) {
             if (err) {
               console.log(reqdata.key, "error updating service:", data);
               return callback(err, "error updating service:" + reqdata.key);
@@ -158,7 +158,7 @@ exports.applyActionForLocation = function (reqdata, action, configloc, callback)
                   delete kubeingress.spec.tls;
                 }
 
-                k8sHelper.k8sCRUD.ensureObject(kubeingress, kubeapiParams, 'ingresses', null, function (err, data) {
+                k8sHelper.k8sCRUD.ensureObject(kubeingress, kubeapiParams, 'ingresses', reqdata, function (err, data) {
                   if (err) {
                     console.log(reqdata.key, "error updating ingress:", data);
                     return callback(err, "error updating ingress:" + reqdata.key);
@@ -190,10 +190,10 @@ exports.applyActionForLocation = function (reqdata, action, configloc, callback)
         deleteObjectResult.context = configLocation.context;
         reqdata.deleteClusters.push(deleteObjectResult);
         if (reqdata.removeService) {
-          const deleteServiceResult = await k8sHelper.k8sCRUD.deleteObject(reqdata.name, kubeapiParams, 'services', null);
+          const deleteServiceResult = await k8sHelper.k8sCRUD.deleteObject(reqdata.name, kubeapiParams, 'services', reqdata);
           console.log(reqdata.key, "success deleting services:", deleteServiceResult);
           if (configLocation.ingressDomain != null && configLocation.ingressDomain != "") {
-            const deleteIngressResult = await k8sHelper.k8sCRUD.deleteObject(reqdata.name, kubeapiParams, 'ingresses', null);
+            const deleteIngressResult = await k8sHelper.k8sCRUD.deleteObject(reqdata.name, kubeapiParams, 'ingresses', reqdata);
             console.log(reqdata.key, "success deleting ingresses:", deleteIngressResult);
           }
         }
