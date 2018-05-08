@@ -369,6 +369,7 @@ definitions:
         enum:
           - "tcp"
           - "http"
+          - "https"
           - "none"
         description: "default is http and based on our standard it will do a health check on the /heath endpoint. At some future date the only option will be http."
         default: "http"
@@ -482,6 +483,7 @@ definitions:
         enum:
           - "tcp"
           - "http"
+          - "https"
           - "none"
         description: "default is http and based on our standard it will do a health check on the /heath endpoint. At some future date the only option will be http."
         default: "http"
