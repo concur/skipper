@@ -240,7 +240,7 @@ See the list of clusters for more details.
   "readinessFailureThreshold": 1, //change the number of attempts before considered failed for readiness probe - default = 3<br>
   "livenessFailureThreshold": 1, //change the number of attempts before considered failed for liveness probe - default = 3<br><br>
   <b># secret mount can be specified to mount secrets in a directory</b> <br>
-  "secretmount": {  <br><br>
+  "secretmount": {  //depricated <br><br>
   <dd>
   <b># name of the secret resource in your namespace to mount</b>  <br>
     "secret": "mysecretstore",  <br><br>
@@ -249,6 +249,16 @@ See the list of clusters for more details.
     <b># OPTIONAL: subpath and/or file to mount</b> <br>
     "subpath": "/subdir/file.txt"  <br>
     } <br> <br>
+     </dd>
+  "secretMount": [{  <br><br>
+  <dd>
+  <b># name of the secret resource in your namespace to mount</b>  <br>
+    "secret": "consul",  <br><br>
+    <b># location to mount it in inside your container</b> <br>
+    "mountPath": "/myvolume",  <br>
+    <b># OPTIONAL: subpath and/or file to mount</b> <br>
+    "subPath": "/subdir/file.txt"  <br>
+    }] <br> <br>
      </dd>
   <b># Use a configmap item for an environment variable in the container</b>  <br>
   "secretEnv": [{  <br><br>

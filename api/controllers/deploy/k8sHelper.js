@@ -160,7 +160,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
     }
   }
 
-  //handle secret volumes
+  //handle secret volumes (depricated)
   if (containerReqdata.secretmount != null && containerReqdata.secretmount.secret != null && containerReqdata.secretmount.mountpath != null) {
     if (kubercjson.spec.template.spec.volumes == undefined) {
       kubercjson.spec.template.spec.volumes = [];
@@ -179,6 +179,29 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
         "mountPath": containerReqdata.secretmount.mountpath,
         "subPath": containerReqdata.secretmount.subpath
     });
+  }
+
+  //handle secretMount
+  if (containerReqdata.secretMount != null && containerReqdata.secretMount.constructor === Array) {
+    for (var mounts = 0; mounts < containerReqdata.secretMount.length; mounts++) {
+      if (kubercjson.spec.template.spec.volumes == undefined) {
+        kubercjson.spec.template.spec.volumes = [];
+      }
+      kubercjson.spec.template.spec.volumes.push({
+          "name": "secret-volume-" + mounts,
+          "secret": {
+              "secretName": containerReqdata.secretMount[mounts].secret
+          }
+      });
+      if (containerjson.volumeMounts == undefined) {
+        containerjson.volumeMounts = [];
+      }
+      containerjson.volumeMounts.push({
+          "name": "secret-volume-" + mounts,
+          "mountPath": containerReqdata.secretMount[mounts].mountPath,
+          "subPath": containerReqdata.secretMount[mounts].subPath
+      });
+    }
   }
 
   //handle emptydir volumes

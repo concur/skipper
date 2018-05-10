@@ -651,6 +651,10 @@ definitions:
       secretmount:
         type: "object"
         items:
+          $ref: "#/definitions/containerSecretMountParamsDepricated"
+      secretMount:
+        type: "array"
+        items:
           $ref: "#/definitions/containerSecretMountParams"
       configMapEnv:
         type: "array"
@@ -684,7 +688,7 @@ definitions:
         type: "string"
       value:
         type: "string"
-  containerSecretMountParams:
+  containerSecretMountParamsDepricated:
     type: "object"
     required:
       - "secret"
@@ -694,6 +698,18 @@ definitions:
         type: "string"
         description: "name of the secret in your namespace that will be mounted to the container"
       mountpath:
+        type: "string"
+        description: "path inside the container to mount the secret data files. example: /config"
+  containerSecretMountParams:
+    type: "object"
+    required:
+      - "secret"
+      - "mountPath"
+    properties:
+      secret:
+        type: "string"
+        description: "name of the secret in your namespace that will be mounted to the container"
+      mountPath:
         type: "string"
         description: "path inside the container to mount the secret data files. example: /config"
   containerConfigMountParams:
