@@ -109,27 +109,32 @@ const deleteRequest = function (reqdata, apiConnectParams, callback) {
 const serviceChanged = function (oldSvc, newSvc) {
   //check if the expected fields of the service are different than what is currently set
   var svcChanged = false;
-  
+
   if (oldSvc == undefined) {
     //no need to check further
     return svcChanged;
   }
-  
+
   //delete dynamically added annotations from existing object before comparison
   if (oldSvc != undefined && oldSvc.hasOwnProperty("metadata") && oldSvc.metadata.hasOwnProperty("annotations")) {
     for (var dynA = 0; dynA < config.dynamicServiceAnnotations.length; dynA++) {
       delete oldSvc.metadata.annotations[config.dynamicServiceAnnotations[dynA]];
     }
   }
-  
+
   if (!svcChanged && oldSvc.spec.ports[0].targetPort != newSvc.spec.ports[0].targetPort) {
     svcChanged = true;
     console.log("service target port changed", newSvc.metadata.name);
   }
-  
+
   if (!svcChanged && oldSvc.spec.ports[0].port != newSvc.spec.ports[0].port) {
     svcChanged = true;
     console.log("service port changed", newSvc.metadata.name);
+  }
+
+  if (!svcChanged && oldSvc.spec.type != newSvc.spec.type) {
+    svcChanged = true;
+    console.log("service type changed", newSvc.metadata.name);
   }
 
   if (!svcChanged && oldSvc.metadata.hasOwnProperty("annotations") && newSvc.metadata.annotations.length != oldSvc.metadata.annotations.length) {
@@ -141,12 +146,12 @@ const serviceChanged = function (oldSvc, newSvc) {
     svcChanged = true;
     console.log("annotations have different values", newSvc.metadata.name);
   }
-  
+
   if (!svcChanged && !_.isEqual(_.sortBy(newSvc.spec.selector), _.sortBy(oldSvc.spec.selector))) {
     svcChanged = true;
     console.log("selectors have different values", newSvc.metadata.name);
   }
-  
+
   return svcChanged;
 }
 
