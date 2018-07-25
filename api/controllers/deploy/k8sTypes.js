@@ -13,7 +13,7 @@ exports.getKind = function(reqdata) {
 };
 
 exports.setrcjson = function (reqdata) {
-  var kubeObjJson = 
+  var kubeObjJson =
         {
           "metadata": {
             "annotations": reqdata.annotations,
@@ -45,13 +45,18 @@ exports.setrcjson = function (reqdata) {
     if (reqdata.replicas != "" && reqdata.replicas != null) {
       tmpJson.spec.replicas = reqdata.replicas;
     }
+
+    // set termination policy
+    if (reqdata.terminationGracePeriodSeconds) {
+      tmpJson.spec.template.spec.terminationGracePeriodSeconds = reqdata.terminationGracePeriodSeconds;
+    }
   }
-  
+
   //set override spec last
   _.merge(tmpJson, reqdata.k8s);
-  
+
   _.merge(kubeObjJson, tmpJson);
-  
+
   //get kind
   reqdata.kind = JSON.parse(JSON.stringify(kind));
 
@@ -66,11 +71,11 @@ exports.setrcjson = function (reqdata) {
   }
 
   reqdata.kubercjson = kubeObjJson;
-  
+
 };
 
 exports.setsvcjson = function (reqdata) {
-  reqdata.kubesvcjson = 
+  reqdata.kubesvcjson =
     {
       "apiVersion": "v1",
       "kind": "Service",
@@ -93,7 +98,7 @@ exports.setsvcjson = function (reqdata) {
         },
         "type": reqdata.serviceType
       }
-    }; 
+    };
 
     //set group selector if it exists
     if (reqdata.targetGroup != "" && reqdata.targetGroup != null) {
