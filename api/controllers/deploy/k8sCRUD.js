@@ -132,11 +132,6 @@ const serviceChanged = function (oldSvc, newSvc) {
     console.log("service port changed", newSvc.metadata.name);
   }
 
-  if (!svcChanged && oldSvc.spec.type != newSvc.spec.type) {
-    svcChanged = true;
-    console.log("service type changed", newSvc.metadata.name);
-  }
-
   if (!svcChanged && oldSvc.metadata.hasOwnProperty("annotations") && newSvc.metadata.annotations.length != oldSvc.metadata.annotations.length) {
     svcChanged = true;
     console.log("Different number of annotations", newSvc.metadata.name);
