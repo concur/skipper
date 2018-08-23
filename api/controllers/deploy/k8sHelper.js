@@ -166,7 +166,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
       kubercjson.spec.template.spec.volumes = [];
     }
     kubercjson.spec.template.spec.volumes.push({
-        "name": "secret-volume",
+        "name": "secret-volume-" + containerReqdata.name,
         "secret": {
             "secretName": containerReqdata.secretmount.secret
         }
@@ -175,7 +175,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
       containerjson.volumeMounts = [];
     }
     containerjson.volumeMounts.push({
-        "name": "secret-volume",
+        "name": "secret-volume-" + containerReqdata.name,
         "mountPath": containerReqdata.secretmount.mountpath,
         "subPath": containerReqdata.secretmount.subpath
     });
@@ -188,7 +188,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
         kubercjson.spec.template.spec.volumes = [];
       }
       kubercjson.spec.template.spec.volumes.push({
-          "name": "secret-volume-" + mounts,
+          "name": "secret-volume-" + containerReqdata.name + "-" + mounts,
           "secret": {
               "secretName": containerReqdata.secretMount[mounts].secret
           }
@@ -197,7 +197,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
         containerjson.volumeMounts = [];
       }
       containerjson.volumeMounts.push({
-          "name": "secret-volume-" + mounts,
+          "name": "secret-volume-" + containerReqdata.name + "-" + mounts,
           "mountPath": containerReqdata.secretMount[mounts].mountPath,
           "subPath": containerReqdata.secretMount[mounts].subPath
       });
@@ -210,14 +210,14 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
       kubercjson.spec.template.spec.volumes = [];
     }
     kubercjson.spec.template.spec.volumes.push({
-        "name": "empty",
+        "name": "empty-" + containerReqdata.name,
         "emptyDir": {}
     });
     if (containerjson.volumeMounts == undefined) {
       containerjson.volumeMounts = [];
     }
     containerjson.volumeMounts.push({
-        "name": "empty",
+        "name": "empty-" + containerReqdata.name,
         "mountPath": containerReqdata.emptyDir
     });
   }
@@ -236,7 +236,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
         kubercjson.spec.template.spec.volumes = [];
       }
       kubercjson.spec.template.spec.volumes.push({
-          "name": "config-volume-" + mounts,
+          "name": "config-volume-" + containerReqdata.name + "-" + mounts,
           "configMap": {
               "name": containerReqdata.configMapMount[mounts].configMap
           }
@@ -245,7 +245,7 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
         containerjson.volumeMounts = [];
       }
       containerjson.volumeMounts.push({
-          "name": "config-volume-" + mounts,
+          "name": "config-volume-" + containerReqdata.name + "-" + mounts,
           "mountPath": containerReqdata.configMapMount[mounts].mountPath,
           "subPath": containerReqdata.configMapMount[mounts].subPath
       });
