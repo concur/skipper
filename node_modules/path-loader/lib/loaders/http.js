@@ -51,7 +51,8 @@ module.exports.load = function (location, options, callback) {
       callback(err);
     } else {
       // buffer() is only available in Node.js
-      if (typeof req.buffer === 'function') {
+      if (Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]' &&
+          typeof req.buffer === 'function') {
         req.buffer(true);
       }
 

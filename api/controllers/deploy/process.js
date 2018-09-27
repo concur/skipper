@@ -88,7 +88,7 @@ exports.applyActionForLocation = function (reqdata, action, configloc, callback)
       reqdata.endpoints[configLocation.location].url = configLocation.serviceendpoint;
     }
 
-    if (reqdata.type == "deployments") {
+    if (reqdata.kind.containerSpec && _.has(kubercjsonreplaced, "spec.template.spec.containers")) {
       for (var k = 0; k < kubercjsonreplaced.spec.template.spec.containers.length; k++) {
 
         //replace registry endpoints as required
@@ -100,9 +100,8 @@ exports.applyActionForLocation = function (reqdata, action, configloc, callback)
           console.log(reqdata.key, "Docker image after replace", kubercjsonreplaced.spec.template.spec.containers[k].image);
         }
 
-        //add LOCATION, F5LOCATION & SERVICE_ENDPOINT to the defaultENV array
+        //add LOCATION, SERVICE_ENDPOINT and K8SCONTEXT to the defaultENV array
         k8sHelper.addENV(configLocation.defaultENV, {name: "LOCATION", value: configLocation.location});
-//        k8sHelper.addENV(configLocation.defaultENV, {name: "F5LOCATION", value: configLocation.f5location});
         k8sHelper.addENV(configLocation.defaultENV, {name: "SERVICE_ENDPOINT", value: configLocation.serviceendpoint});
         k8sHelper.addENV(configLocation.defaultENV, {name: "K8SCONTEXT", value: configLocation.context});
 
