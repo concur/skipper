@@ -257,6 +257,11 @@ exports.ensureObject = function (Spec, apiConnectParams, objType, requestStore, 
     console.log(reqdata.key, "using patch method.");
     ensureFunc = ensureObjectPatchCU;
   }
+  
+  if (reqdata.dryrun) {
+    return callback(null, {"update": Spec});
+  }
+  
   ensureFunc(Spec, apiConnectParams, objType, reqdata, function(err, data) {
     if (err) {
       return callback(err,data);
@@ -280,6 +285,11 @@ exports.ensureObject = function (Spec, apiConnectParams, objType, requestStore, 
 exports.recreateObject = function (Spec, apiConnectParams, objType, requestStore, callback) {
   var reqdata = JSON.parse(JSON.stringify(requestStore));
   reqdata.type = objType;
+  
+  if (reqdata.dryrun) {
+    return callback(null, {"update": Spec});
+  }
+  
   exports.deleteObject(Spec.metadata.name, apiConnectParams, objType, reqdata)
     .then(
     function (deleteData) {
@@ -296,6 +306,11 @@ exports.recreateObject = function (Spec, apiConnectParams, objType, requestStore
 exports.deleteObject = function (objectName, apiConnectParams, objType, requestStore) {
   var objectJSON = {}, reqdata = JSON.parse(JSON.stringify(requestStore));
   reqdata.type = objType;
+  
+  if (reqdata.dryrun) {
+    return callback(null, {"delete": objType + '.' + objectName});
+  }
+  
   return new Promise((resolve, reject) => {
     var kind = k8sHelper.k8sTypes.getKind(reqdata), ConnectParams = JSON.parse(JSON.stringify(apiConnectParams)), deleteKubeAPI = {};
     ConnectParams.version = kind.apiVersion;
@@ -365,7 +380,6 @@ exports.deleteObject = function (objectName, apiConnectParams, objType, requestS
 exports.deleteService = function (serviceName, apiConnectParams, callback) {
   var deleteServiceKubeAPI = {};
   deleteServiceKubeAPI = new k8s(apiConnectParams);
-  
   deleteServiceKubeAPI.services.delete(serviceName, function (err, data) {
     if (err && err.statusCode != 404) {
       return callback(err, {"message": "Error deleting service: " + serviceName + " " + JSON.stringify(err)});
