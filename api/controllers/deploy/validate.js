@@ -174,7 +174,7 @@ exports.validateUpdateIndex = function (reqdata, callback) {
   if (!_.has(reqdata, 'version') && _.has(reqdata, 'containers[0].image')) {
     var ver = _.split(reqdata.containers[0].image, ":", 2);
     if (ver.length == 2 && ver[1] != "") {
-      reqdata.version = ver[1];
+      reqdata.version = _.truncate(ver[1],{'length': 63, 'omission': ''});
     }
   }
 
