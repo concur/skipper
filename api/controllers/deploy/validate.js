@@ -298,6 +298,10 @@ exports.validateUpdateIndex = function (reqdata, callback) {
   if (reqdata.annotations == null || reqdata.annotations == "" ) {
     reqdata.annotations = {};
   }
+
+  if (reqdata.labels == null || reqdata.labels == "" ) {
+    reqdata.labels = {};
+  }
   
   //for each container
   for (var i = 0; i < reqdata.containers.length; i++) {

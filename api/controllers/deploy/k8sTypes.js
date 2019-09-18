@@ -30,6 +30,9 @@ exports.setrcjson = function (reqdata) {
     //set version tag
     tmpJson.spec.template.metadata.labels.version = reqdata.version;
 
+    //add provided labels
+    _.merge(tmpJson.spec.template.metadata.labels, reqdata.labels);
+
     //set group selector if it exists
     if (reqdata.targetGroup != "" && reqdata.targetGroup != null) {
       kubeObjJson.metadata.name = reqdata.name + "-" + reqdata.targetGroup;
