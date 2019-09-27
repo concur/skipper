@@ -308,7 +308,6 @@ definitions:
     required:
       - "name"
       - "token"
-      - "type"
     properties:
       name:
         type: "string"
