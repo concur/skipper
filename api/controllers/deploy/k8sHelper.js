@@ -190,7 +190,8 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
       kubercjson.spec.template.spec.volumes.push({
           "name": "secret-volume-" + containerReqdata.name + "-" + mounts,
           "secret": {
-              "secretName": containerReqdata.secretMount[mounts].secret
+              "secretName": containerReqdata.secretMount[mounts].secret,
+              "optional": containerReqdata.secretMount[mounts].optional || false
           }
       });
       if (containerjson.volumeMounts == undefined) {
@@ -238,7 +239,8 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
       kubercjson.spec.template.spec.volumes.push({
           "name": "config-volume-" + containerReqdata.name + "-" + mounts,
           "configMap": {
-              "name": containerReqdata.configMapMount[mounts].configMap
+              "name": containerReqdata.configMapMount[mounts].configMap,
+              "optional": containerReqdata.configMapMount[mounts].optional || false
           }
       });
       if (containerjson.volumeMounts == undefined) {
@@ -267,7 +269,8 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
         "valueFrom": {
           configMapKeyRef: {
             name: containerReqdata.configMapEnv[envs].configMap,
-            key: containerReqdata.configMapEnv[envs].key
+            key: containerReqdata.configMapEnv[envs].key,
+            optional: containerReqdata.configMapEnv[envs].optional || false
           }
         }
       });
@@ -282,7 +285,8 @@ exports.handleContainerParams = function (healthCheck, containerReqdata, kubercj
         "valueFrom": {
           secretKeyRef: {
             name: containerReqdata.secretEnv[envs].secret,
-            key: containerReqdata.secretEnv[envs].key
+            key: containerReqdata.secretEnv[envs].key,
+            optional: containerReqdata.secretEnv[envs].optional || false
           }
         }
       });
