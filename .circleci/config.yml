@@ -1,10 +1,12 @@
 version: 2
 jobs:
   build:
-    machine: true
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
     working_directory: ~/repo
     environment:
-      CHANGE_MINIKUBE_NONE_USER: true
+      CHANGE_MINIKUBE_NONE_USER: "true"
     steps:
       - checkout
       # Download and cache dependencies
@@ -21,6 +23,7 @@ jobs:
             curl -Lo minikube https://storage.googleapis.com/minikube/releases/v1.5.1/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
       - run:
           command: |
+            sudo apt-get install systemctl
             sudo minikube start --vm-driver=none --kubernetes-version v1.16.0
       - run:
           command: |
