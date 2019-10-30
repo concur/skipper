@@ -1,5 +1,5 @@
 /*
-Copyright 2015 Kyle E. Mitchell
+Copyright spdx-correct.js contributors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -224,7 +224,9 @@ var lastResorts = [
   ['GNU', 'GPL-3.0-or-later'],
   ['LGPL', 'LGPL-3.0-or-later'],
   ['GPLV1', 'GPL-1.0-only'],
+  ['GPL-1', 'GPL-1.0-only'],
   ['GPLV2', 'GPL-2.0-only'],
+  ['GPL-2', 'GPL-2.0-only'],
   ['GPL', 'GPL-3.0-or-later'],
   ['MIT +NO-FALSE-ATTRIBS', 'MITNFA'],
   ['MIT', 'MIT'],
@@ -275,7 +277,12 @@ var anyCorrection = function (identifier, check) {
   return null
 }
 
-module.exports = function (identifier) {
+module.exports = function (identifier, options) {
+  options = options || {}
+  var upgrade = options.upgrade === undefined ? true : !!options.upgrade
+  function postprocess (value) {
+    return upgrade ? upgradeGPLs(value) : value
+  }
   var validArugment = (
     typeof identifier === 'string' &&
     identifier.trim().length !== 0
@@ -283,13 +290,17 @@ module.exports = function (identifier) {
   if (!validArugment) {
     throw Error('Invalid argument. Expected non-empty string.')
   }
-  identifier = identifier.replace(/\+$/, '').trim()
+  identifier = identifier.trim()
   if (valid(identifier)) {
-    return upgradeGPLs(identifier)
+    return postprocess(identifier)
+  }
+  var noPlus = identifier.replace(/\+$/, '').trim()
+  if (valid(noPlus)) {
+    return postprocess(noPlus)
   }
   var transformed = validTransformation(identifier)
   if (transformed !== null) {
-    return upgradeGPLs(transformed)
+    return postprocess(transformed)
   }
   transformed = anyCorrection(identifier, function (argument) {
     if (valid(argument)) {
@@ -298,15 +309,15 @@ module.exports = function (identifier) {
     return validTransformation(argument)
   })
   if (transformed !== null) {
-    return upgradeGPLs(transformed)
+    return postprocess(transformed)
   }
   transformed = validLastResort(identifier)
   if (transformed !== null) {
-    return upgradeGPLs(transformed)
+    return postprocess(transformed)
   }
   transformed = anyCorrection(identifier, validLastResort)
   if (transformed !== null) {
-    return upgradeGPLs(transformed)
+    return postprocess(transformed)
   }
   return null
 }
@@ -318,6 +329,12 @@ function upgradeGPLs (value) {
     'LGPL-2.1'
   ].indexOf(value) !== -1) {
     return value + '-only'
+  } else if ([
+    'GPL-1.0+', 'GPL-2.0+', 'GPL-3.0+',
+    'LGPL-2.0+', 'LGPL-2.1+', 'LGPL-3.0+',
+    'AGPL-1.0+', 'AGPL-3.0+'
+  ].indexOf(value) !== -1) {
+    return value.replace(/\+$/, '-or-later')
   } else if (['GPL-3.0', 'LGPL-3.0', 'AGPL-3.0'].indexOf(value) !== -1) {
     return value + '-or-later'
   } else {

@@ -13,6 +13,9 @@ JavaScriptCompiler.prototype = {
   // PUBLIC API: You can override these methods in a subclass to provide
   // alternative compiled forms for name lookup and buffering semantics
   nameLookup: function(parent, name/* , type*/) {
+    if (name === 'constructor') {
+      return ['(', parent, '.propertyIsEnumerable(\'constructor\') ? ', parent, '.constructor : undefined', ')'];
+    }
     if (JavaScriptCompiler.isValidJavaScriptVariableName(name)) {
       return [parent, '.', name];
     } else {
@@ -133,7 +136,7 @@ JavaScriptCompiler.prototype = {
       };
 
       if (this.decorators) {
-        ret.main_d = this.decorators;   // eslint-disable-line camelcase
+        ret.main_d = this.decorators; // eslint-disable-line camelcase
         ret.useDecorators = true;
       }
 
@@ -209,7 +212,7 @@ JavaScriptCompiler.prototype = {
     // aliases will not be used, but this case is already being run on the client and
     // we aren't concern about minimizing the template size.
     let aliasCount = 0;
-    for (let alias in this.aliases) {    // eslint-disable-line guard-for-in
+    for (let alias in this.aliases) { // eslint-disable-line guard-for-in
       let node = this.aliases[alias];
 
       if (this.aliases.hasOwnProperty(alias) && node.children && node.referenceCount > 1) {
@@ -776,12 +779,12 @@ JavaScriptCompiler.prototype = {
 
     for (let i = 0, l = children.length; i < l; i++) {
       child = children[i];
-      compiler = new this.compiler();    // eslint-disable-line new-cap
+      compiler = new this.compiler(); // eslint-disable-line new-cap
 
       let existing = this.matchExistingProgram(child);
 
       if (existing == null) {
-        this.context.programs.push('');     // Placeholder to prevent name conflicts for nested children
+        this.context.programs.push(''); // Placeholder to prevent name conflicts for nested children
         let index = this.context.programs.length;
         child.index = index;
         child.name = 'program' + index;

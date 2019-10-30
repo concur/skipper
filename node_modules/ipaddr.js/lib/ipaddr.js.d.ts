@@ -2,8 +2,8 @@
 
 declare module "ipaddr.js" {
 
-    type IPv4Range = 'unspecified' | 'broadcast' | 'multicast' | 'linkLocal' | 'loopback' | 'carrierGradeNat' | 'private' | 'reserved';
-    type IPv6Range = 'unspecified' | 'linkLocal' | 'multicast' | 'loopback' | 'uniqueLocal' | 'ipv4Mapped' | 'rfc6145' | 'rfc6052' | '6to4' | 'teredo' | 'reserved';
+    type IPv4Range = 'unicast' | 'unspecified' | 'broadcast' | 'multicast' | 'linkLocal' | 'loopback' | 'carrierGradeNat' | 'private' | 'reserved';
+    type IPv6Range = 'unicast' | 'unspecified' | 'linkLocal' | 'multicast' | 'loopback' | 'uniqueLocal' | 'ipv4Mapped' | 'rfc6145' | 'rfc6052' | '6to4' | 'teredo' | 'reserved';
 
     interface RangeList<T> {
         [name: string]: [T, number] | [T, number][];
@@ -26,8 +26,8 @@ declare module "ipaddr.js" {
         export function parse(addr: string): IPv4 | IPv6;
         export function parseCIDR(mask: string): [IPv4 | IPv6, number];
         export function process(address: string): IPv4 | IPv6;
-        export function subnetMatch(addr: IPv4, rangeList: RangeList<IPv4>, defaultName?: string): boolean;
-        export function subnetMatch(addr: IPv6, rangeList: RangeList<IPv6>, defaultName?: string): boolean;
+        export function subnetMatch(addr: IPv4, rangeList: RangeList<IPv4>, defaultName?: string): string;
+        export function subnetMatch(addr: IPv6, rangeList: RangeList<IPv6>, defaultName?: string): string;
 
         export class IPv4 extends IP {
             static broadcastAddressFromCIDR(addr: string): IPv4;
@@ -44,7 +44,7 @@ declare module "ipaddr.js" {
             match(addr: IPv4, bits: number): boolean;
             match(mask: [IPv4, number]): boolean;
             range(): IPv4Range;
-            subnetMatch(rangeList: RangeList<IPv4>, defaultName?: string): boolean;
+            subnetMatch(rangeList: RangeList<IPv4>, defaultName?: string): string;
             toIPv4MappedAddress(): IPv6;
         }
 
@@ -62,7 +62,7 @@ declare module "ipaddr.js" {
             match(addr: IPv6, bits: number): boolean;
             match(mask: [IPv6, number]): boolean;
             range(): IPv6Range;
-            subnetMatch(rangeList: RangeList<IPv6>, defaultName?: string): boolean;
+            subnetMatch(rangeList: RangeList<IPv6>, defaultName?: string): string;
             toIPv4Address(): IPv4;
         }
     }

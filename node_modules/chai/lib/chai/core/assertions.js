@@ -33,16 +33,17 @@ module.exports = function (chai, _) {
    * - same
    * - but
    * - does
+   * - still
    *
    * @name language chains
    * @namespace BDD
    * @api public
    */
 
-  [ 'to', 'be', 'been'
-  , 'is', 'and', 'has', 'have'
-  , 'with', 'that', 'which', 'at'
-  , 'of', 'same', 'but', 'does' ].forEach(function (chain) {
+  [ 'to', 'be', 'been', 'is'
+  , 'and', 'has', 'have', 'with'
+  , 'that', 'which', 'at', 'of'
+  , 'same', 'but', 'does', 'still' ].forEach(function (chain) {
     Assertion.addProperty(chain);
   });
 
@@ -149,7 +150,8 @@ module.exports = function (chai, _) {
    *     Object.prototype.b = 2;
    *
    *     expect({a: 1}).to.have.own.property('a');
-   *     expect({a: 1}).to.have.property('b').but.not.own.property('b'); 
+   *     expect({a: 1}).to.have.property('b');
+   *     expect({a: 1}).to.not.have.own.property('b');
    *
    *     expect({a: 1}).to.own.include({a: 1});
    *     expect({a: 1}).to.include({b: 2}).but.not.own.include({b: 2});
@@ -209,7 +211,6 @@ module.exports = function (chai, _) {
     flag(this, 'any', true);
     flag(this, 'all', false);
   });
-
 
   /**
    * ### .all
@@ -282,7 +283,7 @@ module.exports = function (chai, _) {
    *     expect(1, 'nooo why fail??').to.be.a('string');
    *
    * `.a` can also be used as a language chain to improve the readability of
-   * your assertions. 
+   * your assertions.
    *
    *     expect({b: 2}).to.have.a.property('b');
    *
@@ -396,7 +397,7 @@ module.exports = function (chai, _) {
    *
    *     expect('foobar').to.not.include('taco');
    *     expect([1, 2, 3]).to.not.include(4);
-   * 
+   *
    * However, it's dangerous to negate `.include` when the target is an object.
    * The problem is that it creates uncertain expectations by asserting that the
    * target object doesn't have all of `val`'s key/value pairs but may or may
@@ -469,7 +470,7 @@ module.exports = function (chai, _) {
 
   function include (val, msg) {
     if (msg) flag(this, 'message', msg);
-    
+
     var obj = flag(this, 'object')
       , objType = _.type(obj).toLowerCase()
       , flagMsg = flag(this, 'message')
@@ -542,17 +543,17 @@ module.exports = function (chai, _) {
         var props = Object.keys(val)
           , firstErr = null
           , numErrs = 0;
-  
+
         props.forEach(function (prop) {
           var propAssertion = new Assertion(obj);
           _.transferFlags(this, propAssertion, true);
           flag(propAssertion, 'lockSsfi', true);
-  
+
           if (!negate || props.length === 1) {
             propAssertion.property(prop, val[prop]);
             return;
           }
-  
+
           try {
             propAssertion.property(prop, val[prop]);
           } catch (err) {
@@ -563,7 +564,7 @@ module.exports = function (chai, _) {
             numErrs++;
           }
         }, this);
-  
+
         // When validating .not.include with multiple properties, we only want
         // to throw an assertion error if all of the properties are included,
         // in which case we throw the first property assertion error that we
@@ -589,9 +590,9 @@ module.exports = function (chai, _) {
   /**
    * ### .ok
    *
-   * Asserts that the target is loosely (`==`) equal to `true`. However, it's
-   * often best to assert that the target is strictly (`===`) or deeply equal to
-   * its expected value.
+   * Asserts that the target is a truthy value (considered `true` in boolean context).
+   * However, it's often best to assert that the target is strictly (`===`) or
+   * deeply equal to its expected value.
    *
    *     expect(1).to.equal(1); // Recommended
    *     expect(1).to.be.ok; // Not recommended
@@ -975,7 +976,7 @@ module.exports = function (chai, _) {
    *
    *     expect(1).to.equal(1);
    *     expect('foo').to.equal('foo');
-   * 
+   *
    * Add `.deep` earlier in the chain to use deep equality instead. See the
    * `deep-eql` project page for info on the deep equality algorithm:
    * https://github.com/chaijs/deep-eql.
@@ -1017,7 +1018,10 @@ module.exports = function (chai, _) {
     if (msg) flag(this, 'message', msg);
     var obj = flag(this, 'object');
     if (flag(this, 'deep')) {
-      return this.eql(val);
+      var prevLockSsfi = flag(this, 'lockSsfi');
+      flag(this, 'lockSsfi', true);
+      this.eql(val);
+      flag(this, 'lockSsfi', prevLockSsfi);
     } else {
       this.assert(
           val === obj
@@ -1100,8 +1104,8 @@ module.exports = function (chai, _) {
    *     expect(2).to.equal(2); // Recommended
    *     expect(2).to.be.above(1); // Not recommended
    *
-   * Add `.lengthOf` earlier in the chain to assert that the value of the
-   * target's `length` property is greater than the given number `n`.
+   * Add `.lengthOf` earlier in the chain to assert that the target's `length`
+   * or `size` is greater than the given number `n`.
    *
    *     expect('foo').to.have.lengthOf(3); // Recommended
    *     expect('foo').to.have.lengthOf.above(2); // Not recommended
@@ -1142,12 +1146,13 @@ module.exports = function (chai, _) {
       , ssfi = flag(this, 'ssfi')
       , objType = _.type(obj).toLowerCase()
       , nType = _.type(n).toLowerCase()
+      , errorMessage
       , shouldThrow = true;
 
-    if (doLength) {
+    if (doLength && objType !== 'map' && objType !== 'set') {
       new Assertion(obj, flagMsg, ssfi, true).to.have.property('length');
     }
-    
+
     if (!doLength && (objType === 'date' && nType !== 'date')) {
       errorMessage = msgPrefix + 'the argument to above must be a date';
     } else if (nType !== 'number' && (doLength || objType === 'number')) {
@@ -1164,13 +1169,20 @@ module.exports = function (chai, _) {
     }
 
     if (doLength) {
-      var len = obj.length;
+      var descriptor = 'length'
+        , itemsCount;
+      if (objType === 'map' || objType === 'set') {
+        descriptor = 'size';
+        itemsCount = obj.size;
+      } else {
+        itemsCount = obj.length;
+      }
       this.assert(
-          len > n
-        , 'expected #{this} to have a length above #{exp} but got #{act}'
-        , 'expected #{this} to not have a length above #{exp}'
+          itemsCount > n
+        , 'expected #{this} to have a ' + descriptor + ' above #{exp} but got #{act}'
+        , 'expected #{this} to not have a ' + descriptor + ' above #{exp}'
         , n
-        , len
+        , itemsCount
       );
     } else {
       this.assert(
@@ -1197,9 +1209,8 @@ module.exports = function (chai, _) {
    *     expect(2).to.be.at.least(1); // Not recommended
    *     expect(2).to.be.at.least(2); // Not recommended
    *
-   * Add `.lengthOf` earlier in the chain to assert that the value of the
-   * target's `length` property is greater than or equal to the given number
-   * `n`.
+   * Add `.lengthOf` earlier in the chain to assert that the target's `length`
+   * or `size` is greater than or equal to the given number `n`.
    *
    *     expect('foo').to.have.lengthOf(3); // Recommended
    *     expect('foo').to.have.lengthOf.at.least(2); // Not recommended
@@ -1238,9 +1249,10 @@ module.exports = function (chai, _) {
       , ssfi = flag(this, 'ssfi')
       , objType = _.type(obj).toLowerCase()
       , nType = _.type(n).toLowerCase()
+      , errorMessage
       , shouldThrow = true;
 
-    if (doLength) {
+    if (doLength && objType !== 'map' && objType !== 'set') {
       new Assertion(obj, flagMsg, ssfi, true).to.have.property('length');
     }
 
@@ -1260,13 +1272,20 @@ module.exports = function (chai, _) {
     }
 
     if (doLength) {
-      var len = obj.length;
+      var descriptor = 'length'
+        , itemsCount;
+      if (objType === 'map' || objType === 'set') {
+        descriptor = 'size';
+        itemsCount = obj.size;
+      } else {
+        itemsCount = obj.length;
+      }
       this.assert(
-          len >= n
-        , 'expected #{this} to have a length at least #{exp} but got #{act}'
-        , 'expected #{this} to have a length below #{exp}'
+          itemsCount >= n
+        , 'expected #{this} to have a ' + descriptor + ' at least #{exp} but got #{act}'
+        , 'expected #{this} to have a ' + descriptor + ' below #{exp}'
         , n
-        , len
+        , itemsCount
       );
     } else {
       this.assert(
@@ -1291,8 +1310,8 @@ module.exports = function (chai, _) {
    *     expect(1).to.equal(1); // Recommended
    *     expect(1).to.be.below(2); // Not recommended
    *
-   * Add `.lengthOf` earlier in the chain to assert that the value of the
-   * target's `length` property is less than the given number `n`.
+   * Add `.lengthOf` earlier in the chain to assert that the target's `length`
+   * or `size` is less than the given number `n`.
    *
    *     expect('foo').to.have.lengthOf(3); // Recommended
    *     expect('foo').to.have.lengthOf.below(4); // Not recommended
@@ -1333,9 +1352,10 @@ module.exports = function (chai, _) {
       , ssfi = flag(this, 'ssfi')
       , objType = _.type(obj).toLowerCase()
       , nType = _.type(n).toLowerCase()
+      , errorMessage
       , shouldThrow = true;
 
-    if (doLength) {
+    if (doLength && objType !== 'map' && objType !== 'set') {
       new Assertion(obj, flagMsg, ssfi, true).to.have.property('length');
     }
 
@@ -1355,13 +1375,20 @@ module.exports = function (chai, _) {
     }
 
     if (doLength) {
-      var len = obj.length;
+      var descriptor = 'length'
+        , itemsCount;
+      if (objType === 'map' || objType === 'set') {
+        descriptor = 'size';
+        itemsCount = obj.size;
+      } else {
+        itemsCount = obj.length;
+      }
       this.assert(
-          len < n
-        , 'expected #{this} to have a length below #{exp} but got #{act}'
-        , 'expected #{this} to not have a length below #{exp}'
+          itemsCount < n
+        , 'expected #{this} to have a ' + descriptor + ' below #{exp} but got #{act}'
+        , 'expected #{this} to not have a ' + descriptor + ' below #{exp}'
         , n
-        , len
+        , itemsCount
       );
     } else {
       this.assert(
@@ -1388,8 +1415,8 @@ module.exports = function (chai, _) {
    *     expect(1).to.be.at.most(2); // Not recommended
    *     expect(1).to.be.at.most(1); // Not recommended
    *
-   * Add `.lengthOf` earlier in the chain to assert that the value of the
-   * target's `length` property is less than or equal to the given number `n`.
+   * Add `.lengthOf` earlier in the chain to assert that the target's `length`
+   * or `size` is less than or equal to the given number `n`.
    *
    *     expect('foo').to.have.lengthOf(3); // Recommended
    *     expect('foo').to.have.lengthOf.at.most(4); // Not recommended
@@ -1428,12 +1455,13 @@ module.exports = function (chai, _) {
       , ssfi = flag(this, 'ssfi')
       , objType = _.type(obj).toLowerCase()
       , nType = _.type(n).toLowerCase()
+      , errorMessage
       , shouldThrow = true;
 
-    if (doLength) {
+    if (doLength && objType !== 'map' && objType !== 'set') {
       new Assertion(obj, flagMsg, ssfi, true).to.have.property('length');
     }
-    
+
     if (!doLength && (objType === 'date' && nType !== 'date')) {
       errorMessage = msgPrefix + 'the argument to most must be a date';
     } else if (nType !== 'number' && (doLength || objType === 'number')) {
@@ -1450,13 +1478,20 @@ module.exports = function (chai, _) {
     }
 
     if (doLength) {
-      var len = obj.length;
+      var descriptor = 'length'
+        , itemsCount;
+      if (objType === 'map' || objType === 'set') {
+        descriptor = 'size';
+        itemsCount = obj.size;
+      } else {
+        itemsCount = obj.length;
+      }
       this.assert(
-          len <= n
-        , 'expected #{this} to have a length at most #{exp} but got #{act}'
-        , 'expected #{this} to have a length above #{exp}'
+          itemsCount <= n
+        , 'expected #{this} to have a ' + descriptor + ' at most #{exp} but got #{act}'
+        , 'expected #{this} to have a ' + descriptor + ' above #{exp}'
         , n
-        , len
+        , itemsCount
       );
     } else {
       this.assert(
@@ -1484,9 +1519,9 @@ module.exports = function (chai, _) {
    *     expect(2).to.be.within(2, 3); // Not recommended
    *     expect(2).to.be.within(1, 2); // Not recommended
    *
-   * Add `.lengthOf` earlier in the chain to assert that the value of the
-   * target's `length` property is greater than or equal to the given number
-   * `start`, and less than or equal to the given number `finish`.
+   * Add `.lengthOf` earlier in the chain to assert that the target's `length`
+   * or `size` is greater than or equal to the given number `start`, and less
+   * than or equal to the given number `finish`.
    *
    *     expect('foo').to.have.lengthOf(3); // Recommended
    *     expect('foo').to.have.lengthOf.within(2, 4); // Not recommended
@@ -1524,12 +1559,13 @@ module.exports = function (chai, _) {
       , objType = _.type(obj).toLowerCase()
       , startType = _.type(start).toLowerCase()
       , finishType = _.type(finish).toLowerCase()
+      , errorMessage
       , shouldThrow = true
       , range = (startType === 'date' && finishType === 'date')
           ? start.toUTCString() + '..' + finish.toUTCString()
           : start + '..' + finish;
 
-    if (doLength) {
+    if (doLength && objType !== 'map' && objType !== 'set') {
       new Assertion(obj, flagMsg, ssfi, true).to.have.property('length');
     }
 
@@ -1549,11 +1585,18 @@ module.exports = function (chai, _) {
     }
 
     if (doLength) {
-      var len = obj.length;
+      var descriptor = 'length'
+        , itemsCount;
+      if (objType === 'map' || objType === 'set') {
+        descriptor = 'size';
+        itemsCount = obj.size;
+      } else {
+        itemsCount = obj.length;
+      }
       this.assert(
-          len >= start && len <= finish
-        , 'expected #{this} to have a length within ' + range
-        , 'expected #{this} to not have a length within ' + range
+          itemsCount >= start && itemsCount <= finish
+        , 'expected #{this} to have a ' + descriptor + ' within ' + range
+        , 'expected #{this} to not have a ' + descriptor + ' within ' + range
       );
     } else {
       this.assert(
@@ -1669,7 +1712,8 @@ module.exports = function (chai, _) {
    *
    *     expect({a: 1}).to.have.own.property('a');
    *     expect({a: 1}).to.have.own.property('a', 1);
-   *     expect({a: 1}).to.have.property('b').but.not.own.property('b'); 
+   *     expect({a: 1}).to.have.property('b');
+   *     expect({a: 1}).to.not.have.own.property('b');
    *
    * `.deep` and `.own` can be combined.
    *
@@ -1696,7 +1740,7 @@ module.exports = function (chai, _) {
    * Add `.not` earlier in the chain to negate `.property`.
    *
    *     expect({a: 1}).to.not.have.property('b');
-   * 
+   *
    * However, it's dangerous to negate `.property` when providing `val`. The
    * problem is that it creates uncertain expectations by asserting that the
    * target either doesn't have a property with the given key `name`, or that it
@@ -1734,7 +1778,7 @@ module.exports = function (chai, _) {
    *
    *     // Not recommended
    *     expect({a: 1}).to.have.property('b', undefined, 'nooo why fail??');
-   * 
+   *
    * The above assertion isn't the same thing as not providing `val`. Instead,
    * it's asserting that the target object has a `b` property that's equal to
    * `undefined`.
@@ -1758,10 +1802,30 @@ module.exports = function (chai, _) {
       , isOwn = flag(this, 'own')
       , flagMsg = flag(this, 'message')
       , obj = flag(this, 'object')
-      , ssfi = flag(this, 'ssfi');
+      , ssfi = flag(this, 'ssfi')
+      , nameType = typeof name;
+
+    flagMsg = flagMsg ? flagMsg + ': ' : '';
+
+    if (isNested) {
+      if (nameType !== 'string') {
+        throw new AssertionError(
+          flagMsg + 'the argument to property must be a string when using nested syntax',
+          undefined,
+          ssfi
+        );
+      }
+    } else {
+      if (nameType !== 'string' && nameType !== 'number' && nameType !== 'symbol') {
+        throw new AssertionError(
+          flagMsg + 'the argument to property must be a string, number, or symbol',
+          undefined,
+          ssfi
+        );
+      }
+    }
 
     if (isNested && isOwn) {
-      flagMsg = flagMsg ? flagMsg + ': ' : '';
       throw new AssertionError(
         flagMsg + 'The "nested" and "own" flags cannot be combined.',
         undefined,
@@ -1770,7 +1834,6 @@ module.exports = function (chai, _) {
     }
 
     if (obj === null || obj === undefined) {
-      flagMsg = flagMsg ? flagMsg + ': ' : '';
       throw new AssertionError(
         flagMsg + 'Target cannot be null or undefined.',
         undefined,
@@ -1853,7 +1916,7 @@ module.exports = function (chai, _) {
    * Add `.not` earlier in the chain to negate `.ownPropertyDescriptor`.
    *
    *     expect({a: 1}).to.not.have.ownPropertyDescriptor('b');
-   * 
+   *
    * However, it's dangerous to negate `.ownPropertyDescriptor` when providing
    * a `descriptor`. The problem is that it creates uncertain expectations by
    * asserting that the target either doesn't have a property descriptor with
@@ -1924,7 +1987,7 @@ module.exports = function (chai, _) {
    *       writable: true,
    *       value: 2,
    *     });
-   * 
+   *
    *     // Recommended
    *     expect({a: 1}, 'nooo why fail??').to.have.ownPropertyDescriptor('b');
    *
@@ -1981,11 +2044,13 @@ module.exports = function (chai, _) {
   /**
    * ### .lengthOf(n[, msg])
    *
-   * Asserts that the target's `length` property is equal to the given number
+   * Asserts that the target's `length` or `size` is equal to the given number
    * `n`.
    *
    *     expect([1, 2, 3]).to.have.lengthOf(3);
    *     expect('foo').to.have.lengthOf(3);
+   *     expect(new Set([1, 2, 3])).to.have.lengthOf(3);
+   *     expect(new Map([['a', 1], ['b', 2], ['c', 3]])).to.have.lengthOf(3);
    *
    * Add `.not` earlier in the chain to negate `.lengthOf`. However, it's often
    * best to assert that the target's `length` property is equal to its expected
@@ -2041,17 +2106,29 @@ module.exports = function (chai, _) {
   function assertLength (n, msg) {
     if (msg) flag(this, 'message', msg);
     var obj = flag(this, 'object')
+      , objType = _.type(obj).toLowerCase()
       , flagMsg = flag(this, 'message')
-      , ssfi = flag(this, 'ssfi');
-    new Assertion(obj, flagMsg, ssfi, true).to.have.property('length');
-    var len = obj.length;
+      , ssfi = flag(this, 'ssfi')
+      , descriptor = 'length'
+      , itemsCount;
+
+    switch (objType) {
+      case 'map':
+      case 'set':
+        descriptor = 'size';
+        itemsCount = obj.size;
+        break;
+      default:
+        new Assertion(obj, flagMsg, ssfi, true).to.have.property('length');
+        itemsCount = obj.length;
+    }
 
     this.assert(
-        len == n
-      , 'expected #{this} to have a length of #{exp} but got #{act}'
-      , 'expected #{this} to not have a length of #{act}'
+        itemsCount == n
+      , 'expected #{this} to have a ' + descriptor + ' of #{exp} but got #{act}'
+      , 'expected #{this} to not have a ' + descriptor + ' of #{act}'
       , n
-      , len
+      , itemsCount
     );
   }
 
@@ -2113,8 +2190,8 @@ module.exports = function (chai, _) {
    * message to show when the assertion fails. The message can also be given as
    * the second argument to `expect`.
    *
-   *     expect('foobar').to.have.string(/taco/, 'nooo why fail??');
-   *     expect('foobar', 'nooo why fail??').to.have.string(/taco/);
+   *     expect('foobar').to.have.string('taco', 'nooo why fail??');
+   *     expect('foobar', 'nooo why fail??').to.have.string('taco');
    *
    * @name string
    * @param {String} str
@@ -2141,7 +2218,7 @@ module.exports = function (chai, _) {
    * ### .keys(key1[, key2[, ...]])
    *
    * Asserts that the target object, array, map, or set has the given keys. Only
-   * the target's own inherited properties are included in the search. 
+   * the target's own inherited properties are included in the search.
    *
    * When the target is an object or array, keys can be provided as one or more
    * string arguments, a single array argument, or a single object argument. In
@@ -2249,6 +2326,7 @@ module.exports = function (chai, _) {
       , isDeep = flag(this, 'deep')
       , str
       , deepStr = ''
+      , actual
       , ok = true
       , flagMsg = flag(this, 'message');
 
@@ -2265,7 +2343,6 @@ module.exports = function (chai, _) {
       if (keysType !== 'Array') {
         keys = Array.prototype.slice.call(arguments);
       }
-
     } else {
       actual = _.getOwnEnumerableProperties(obj);
 
@@ -2298,8 +2375,7 @@ module.exports = function (chai, _) {
     var len = keys.length
       , any = flag(this, 'any')
       , all = flag(this, 'all')
-      , expected = keys
-      , actual;
+      , expected = keys;
 
     if (!any && !all) {
       all = true;
@@ -2376,7 +2452,7 @@ module.exports = function (chai, _) {
    *
    * When no arguments are provided, `.throw` invokes the target function and
    * asserts that an error is thrown.
-   * 
+   *
    *     var badFn = function () { throw new TypeError('Illegal salmon!'); };
    *
    *     expect(badFn).to.throw();
@@ -2428,11 +2504,11 @@ module.exports = function (chai, _) {
    *     expect(badFn).to.throw(err, /salmon/);
    *
    * Add `.not` earlier in the chain to negate `.throw`.
-   *     
+   *
    *     var goodFn = function () {};
    *
    *     expect(goodFn).to.not.throw();
-   * 
+   *
    * However, it's dangerous to negate `.throw` when providing any arguments.
    * The problem is that it creates uncertain expectations by asserting that the
    * target either doesn't throw an error, or that it throws an error but of a
@@ -2780,7 +2856,7 @@ module.exports = function (chai, _) {
    * first argument, and asserts that the value returned is truthy.
    *
    *     expect(1).to.satisfy(function(num) {
-   *       return num > 0; 
+   *       return num > 0;
    *     });
    *
    * Add `.not` earlier in the chain to negate `.satisfy`.
@@ -3001,7 +3077,7 @@ module.exports = function (chai, _) {
     var contains = flag(this, 'contains');
     var ordered = flag(this, 'ordered');
 
-    var subject, failMsg, failNegateMsg, lengthCheck;
+    var subject, failMsg, failNegateMsg;
 
     if (contains) {
       subject = ordered ? 'an ordered superset' : 'a superset';
@@ -3072,7 +3148,6 @@ module.exports = function (chai, _) {
   }
 
   Assertion.addMethod('oneOf', oneOf);
-
 
   /**
    * ### .change(subject[, prop[, msg]])
@@ -3249,7 +3324,7 @@ module.exports = function (chai, _) {
    *
    *     expect(subtractTwo).to.decrease(myObj, 'val').by(2); // Recommended
    *     expect(subtractTwo).to.not.increase(myObj, 'val'); // Not recommended
-   * 
+   *
    * When the subject is expected to stay the same, it's often best to assert
    * exactly that.
    *
@@ -3346,7 +3421,7 @@ module.exports = function (chai, _) {
    *
    * When two arguments are provided, `.decrease` asserts that the value of the
    * given object `subject`'s `prop` property is lesser after invoking the
-   * target function compared to beforehand. 
+   * target function compared to beforehand.
    *
    *     var myObj = {val: 1}
    *       , subtractTwo = function () { myObj.val -= 2; };
@@ -3368,7 +3443,7 @@ module.exports = function (chai, _) {
    *
    *     expect(addTwo).to.increase(myObj, 'val').by(2); // Recommended
    *     expect(addTwo).to.not.decrease(myObj, 'val'); // Not recommended
-   * 
+   *
    * When the subject is expected to stay the same, it's often best to assert
    * exactly that.
    *
@@ -3721,7 +3796,7 @@ module.exports = function (chai, _) {
     var obj = flag(this, 'object');
 
     this.assert(
-        typeof obj === "number" && isFinite(obj)
+        typeof obj === 'number' && isFinite(obj)
       , 'expected #{this} to be a finite number'
       , 'expected #{this} to not be a finite number'
     );
