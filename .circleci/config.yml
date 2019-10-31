@@ -40,7 +40,6 @@ jobs:
             # Each step uses the same `$BASH_ENV`, so need to modify it
             echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
             echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
-      - run: npm update -g npm
       - run: npm install -g mocha
       - run: npm install -g istanbul@1.1.0-alpha.1
       - run: npm update
