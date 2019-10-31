@@ -45,6 +45,9 @@ jobs:
           name: Install mocha
           command: |
             cat $BASH_ENV
+            echo $NVM_DIR
+            . $BASH_ENV
+            echo $NVM_DIR
             npm version
             npm install -g mocha
       - run:
