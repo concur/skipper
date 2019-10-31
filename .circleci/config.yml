@@ -39,17 +39,36 @@ jobs:
             # Each step uses the same `$BASH_ENV`, so need to modify it
             echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
             echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
-            tail -5 $BASH_ENV
+            cat $BASH_ENV
             npm version
-      - run: npm install -g mocha
-      - run: npm install -g istanbul@1.1.0-alpha.1
-      - run: npm update
-      - run: npm version
+      - run:
+          name: Install mocha
+          command: |
+            cat $BASH_ENV
+            npm version
+            npm install -g mocha
+      - run:
+          name: Install Istanbul
+          command: |
+            cat $BASH_ENV 
+            npm version
+            npm install -g istanbul@1.1.0-alpha.1
+      - run:
+          name: npm update
+          command: |
+            cat $BASH_ENV 
+            npm version
+            npm update
       - save_cache:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
-      - run: sudo chown -R $USER /home/circleci/.minikube/* && sudo chown -R $USER /home/circleci/.kube/* && kubectl proxy & npm test
+      - run:
+          name: Run tests
+          command: |
+            cat $BASH_ENV 
+            npm version
+            sudo chown -R $USER /home/circleci/.minikube/* && sudo chown -R $USER /home/circleci/.kube/* && kubectl proxy & npm test
       - store_artifacts:
           path: ~/repo/coverage/lcov-report/
 
