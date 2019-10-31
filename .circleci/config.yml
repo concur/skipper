@@ -39,15 +39,14 @@ jobs:
             # Each step uses the same `$BASH_ENV`, so need to modify it
             echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
             echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
+            echo 'nvm alias default v12.13.0' >> $BASH_ENV
             cat $BASH_ENV
             npm version
       - run:
           name: Install mocha
           command: |
             cat $BASH_ENV
-            echo $NVM_DIR
             . $BASH_ENV
-            echo $NVM_DIR
             npm version
             npm install -g mocha
       - run:
