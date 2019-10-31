@@ -28,14 +28,14 @@ jobs:
           command: |
             sudo minikube update-context
       - run:
-          name: Install node@13.0.1
+          name: Install node@12.13.0
           command: |
             set +e             
             curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.35.0/install.sh | bash
             export NVM_DIR="/opt/circleci/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install v13.0.1
-            nvm alias default v13.0.1
+            nvm install v12.13.0
+            nvm alias default v12.13.0
 
             # Each step uses the same `$BASH_ENV`, so need to modify it
             echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV

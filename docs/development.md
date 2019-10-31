@@ -2,10 +2,10 @@
 
 ## Local Setup
 
-This is a node.js project that requires v13.0.1 or higher
+This is a node.js project that requires v12.13.0 or higher
 
 ```
-nvm use v13.0.1
+nvm use v12.13.0
 ```
 
 Install the following global packages
@@ -28,7 +28,7 @@ kubectl proxy
 npm test
 ```
 
-If you get "Error initializing middleware" then check that you have node version `>= 13.0.1` selected w/ nvm.
+If you get "Error initializing middleware" then check that you have node version `>= 12.13.0` selected w/ nvm.
 
 Tests use mocha and sometimes it can be helpful to rerun a specific set of tests. 
 
