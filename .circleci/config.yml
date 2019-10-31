@@ -43,7 +43,6 @@ jobs:
       - run: npm install -g mocha
       - run: npm install -g istanbul@1.1.0-alpha.1
       - run: npm update
-      - run: npm outdated
       - run: npm version
       - save_cache:
           paths:
