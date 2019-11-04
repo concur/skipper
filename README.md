@@ -72,4 +72,3 @@ Swagger JSON: $SkipperEndpoint/apidocs
 
 [Development Guide](./docs/development.md)
 
-
