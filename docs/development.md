@@ -8,10 +8,10 @@ This is a node.js project that requires v8.3.0 or higher
 nvm use v8.3.0
 ```
 
-Install the following global packages
+Install dependencies
 
 ```
-npm install -g mocha istanbul@1.1.0-alpha.1
+npm install
 ```
 
 ## Run tests
@@ -59,7 +59,7 @@ See the admin guide for details on how to configure those.
 ## Run tests inside the Docker container
 
 ```
-docker run -it -e storagetype -e ddbtable -e customValidateUpdateIndex -e awskey -e awssecret -e domain -e defaultLocations -e defaultHealthCheck -e dynamicServiceAnnotations -e srcReplacementRepos -e setupLocationFilters -e customLocationProcessingHandler -e kubelocation -e kubecluster -e kubenamespace -e kubetoken concur/skipper:latest sh -c "npm install -g mocha && mocha"
+docker run -it -e storagetype -e ddbtable -e customValidateUpdateIndex -e awskey -e awssecret -e domain -e defaultLocations -e defaultHealthCheck -e dynamicServiceAnnotations -e srcReplacementRepos -e setupLocationFilters -e customLocationProcessingHandler -e kubelocation -e kubecluster -e kubenamespace -e kubetoken concur/skipper:latest sh -c "npm install && mocha"
 ```
 
 # submit pull request
