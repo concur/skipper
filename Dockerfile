@@ -1,4 +1,6 @@
-FROM mhart/alpine-node:8.3
+FROM mhart/alpine-node:12.13
+
+RUN apk update && apk upgrade
 
 WORKDIR /
 ADD . .
