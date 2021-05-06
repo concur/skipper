@@ -24,7 +24,7 @@
     "form-data": "^2.5.1",
     "js-yaml": "^3.13.1",
     "jsonfile": "^3.0.1",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "mime": "^1.6.0",
     "mime-types": "^2.1.24",
     "mkdirp": "^0.5.1",
