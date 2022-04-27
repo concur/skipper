@@ -11,7 +11,7 @@
     "@awspilot/dynamodb": "^1.5.0",
     "argparse": "^1.0.10",
     "assertion-error": "^1.1.0",
-    "async": "^2.6.3",
+    "async": "^2.6.4",
     "aws-sdk": "^2.560.0",
     "body-parser": "^1.19.0",
     "brace-expansion": "^1.1.11",
