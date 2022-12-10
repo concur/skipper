@@ -20,7 +20,7 @@
     "console-stamp": "^0.2.9",
     "cors": "^2.8.5",
     "deep-eql": "^3.0.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "form-data": "^2.5.1",
     "js-yaml": "^3.13.1",
     "jsonfile": "^3.0.1",
